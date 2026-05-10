@@ -456,6 +456,10 @@ select:focus {
   background: linear-gradient(90deg, #5bd6ff, #b88cff);
 }
 
+.tp-fill {
+  background: linear-gradient(90deg, #ff8a4f, #f8d66e);
+}
+
 .bar-text {
   display: flex;
   justify-content: space-between;
@@ -712,12 +716,62 @@ select:focus {
   font-weight: 700;
 }
 
+.ability-popover-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(3, 6, 13, 0.62);
+  backdrop-filter: blur(6px);
+}
+
+.ability-popover {
+  width: min(560px, 100%);
+  max-height: min(76vh, 620px);
+  overflow: hidden;
+  border: 1px solid rgba(248, 214, 126, 0.5);
+  border-radius: 8px;
+  background:
+    linear-gradient(145deg, rgba(56, 38, 14, 0.98), rgba(13, 18, 31, 0.98)),
+    var(--panel);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.58), 0 0 46px rgba(248, 214, 126, 0.18);
+}
+
+.ability-popover-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(248, 214, 126, 0.22);
+}
+
+.ability-popover-head h2 {
+  margin: 0;
+  font-size: 1.08rem;
+}
+
+.ability-close {
+  width: 38px;
+  min-height: 38px;
+  padding: 0;
+  border-radius: 50%;
+  font-size: 1.2rem;
+}
+
 .ability-list {
   display: grid;
   gap: 8px;
+  max-height: calc(min(76vh, 620px) - 68px);
+  overflow: auto;
+  padding: 12px;
 }
 
 .ability-list button {
+  min-height: auto;
+  padding: 13px 14px;
   text-align: left;
 }
 

@@ -4,14 +4,14 @@ const app = document.querySelector("#app");
 
 const SYMBOLS = ["◆", "◇", "●", "○", "★", "☆", "▲", "△", "■", "□", "▼", "▽", "✦", "✧", "※", "◎"];
 const JOBS = [
-  { name: "戦士", role: "物理前衛", note: "攻撃力と防御力が高く、特技で押す。魔法は苦手。", hp: 1.22, mp: 0.62, attack: 1.28, defense: 1.18, magic: 0.62, magicDefense: 0.86, technique: 1.05, speed: 0.88, luck: 0.9 },
-  { name: "魔法使い", role: "攻撃魔法", note: "通常攻撃は弱いが、低レベルからMPなしの魔法を使える。魔力で戦う。", hp: 0.82, mp: 1.35, attack: 0.72, defense: 0.78, magic: 1.42, magicDefense: 1.24, technique: 0.76, speed: 1.02, luck: 1.0 },
-  { name: "僧侶", role: "回復・耐久", note: "魔法防御と回復が強い。攻撃力は控えめで長期戦向き。", hp: 0.98, mp: 1.2, attack: 0.82, defense: 1.04, magic: 1.12, magicDefense: 1.36, technique: 0.8, speed: 0.92, luck: 1.24 },
-  { name: "忍者", role: "高速技巧", note: "素早さと技術で先手を取り、特技で削る。耐久は低め。", hp: 0.92, mp: 0.86, attack: 1.08, defense: 0.82, magic: 0.82, magicDefense: 0.92, technique: 1.42, speed: 1.48, luck: 1.18 },
-  { name: "暗黒騎士", role: "物魔混合", note: "攻撃力と闇魔法を両立するが、運と素早さは低い。", hp: 1.12, mp: 0.92, attack: 1.35, defense: 1.05, magic: 1.06, magicDefense: 0.98, technique: 1.02, speed: 0.76, luck: 0.72 },
-  { name: "武闘家", role: "特技連打", note: "技術と攻撃力で戦う。MPは低いが低燃費の特技が得意。", hp: 1.08, mp: 0.58, attack: 1.22, defense: 0.92, magic: 0.58, magicDefense: 0.82, technique: 1.48, speed: 1.3, luck: 1.08 },
-  { name: "賢者", role: "万能魔法", note: "攻撃魔法と回復魔法を覚える万能職。伸びるほど選択肢が増える。", hp: 0.96, mp: 1.42, attack: 0.9, defense: 0.96, magic: 1.34, magicDefense: 1.3, technique: 0.88, speed: 0.94, luck: 1.14 },
-  { name: "盗賊", role: "運と技巧", note: "技術と運で崩す職業。高レベルで奇襲特技が強くなる。", hp: 0.9, mp: 0.74, attack: 0.96, defense: 0.8, magic: 0.74, magicDefense: 0.86, technique: 1.32, speed: 1.34, luck: 1.48 }
+  { name: "戦士", role: "物理前衛", note: "攻撃力と防御力が高く、TPを使う特技で押す。魔法は苦手。", hp: 1.22, mp: 0.62, tp: 1.12, attack: 1.28, defense: 1.18, magic: 0.62, magicDefense: 0.86, technique: 1.05, speed: 0.88, luck: 0.9 },
+  { name: "魔法使い", role: "攻撃魔法", note: "通常攻撃は弱いが、低レベルからMPなしの魔法を使える。魔力で戦う。", hp: 0.82, mp: 1.35, tp: 0.62, attack: 0.72, defense: 0.78, magic: 1.42, magicDefense: 1.24, technique: 0.76, speed: 1.02, luck: 1.0 },
+  { name: "僧侶", role: "回復・耐久", note: "魔法防御と回復が強い。攻撃力は控えめで長期戦向き。", hp: 0.98, mp: 1.2, tp: 0.72, attack: 0.82, defense: 1.04, magic: 1.12, magicDefense: 1.36, technique: 0.8, speed: 0.92, luck: 1.24 },
+  { name: "忍者", role: "高速技巧", note: "素早さと技術で先手を取り、TP特技で削る。耐久は低め。", hp: 0.92, mp: 0.86, tp: 1.32, attack: 1.08, defense: 0.82, magic: 0.82, magicDefense: 0.92, technique: 1.42, speed: 1.48, luck: 1.18 },
+  { name: "暗黒騎士", role: "物魔混合", note: "攻撃力と闇魔法を両立するが、運と素早さは低い。", hp: 1.12, mp: 0.92, tp: 0.98, attack: 1.35, defense: 1.05, magic: 1.06, magicDefense: 0.98, technique: 1.02, speed: 0.76, luck: 0.72 },
+  { name: "武闘家", role: "特技連打", note: "技術と攻撃力で戦う。MPは低いがTPが高く、特技を連発しやすい。", hp: 1.08, mp: 0.58, tp: 1.48, attack: 1.22, defense: 0.92, magic: 0.58, magicDefense: 0.82, technique: 1.48, speed: 1.3, luck: 1.08 },
+  { name: "賢者", role: "万能魔法", note: "攻撃魔法と回復魔法を覚える万能職。伸びるほど選択肢が増える。", hp: 0.96, mp: 1.42, tp: 0.76, attack: 0.9, defense: 0.96, magic: 1.34, magicDefense: 1.3, technique: 0.88, speed: 0.94, luck: 1.14 },
+  { name: "盗賊", role: "運と技巧", note: "技術と運で崩す職業。TPが高く、高レベルで奇襲特技が強くなる。", hp: 0.9, mp: 0.74, tp: 1.38, attack: 0.96, defense: 0.8, magic: 0.74, magicDefense: 0.86, technique: 1.32, speed: 1.34, luck: 1.48 }
 ];
 
 const MAGIC_BOOK = [
@@ -153,7 +153,8 @@ function createCharacter(inputName, options = {}) {
   const nature = 0.78 + Math.pow(unitHash(baseName, "NameBattler-nature-v3"), 2.2) * 0.82;
   const spikeRoll = unitHash(baseName, "NameBattler-spike-v3");
   const spike = spikeRoll > 0.94 ? 1.65 : spikeRoll < 0.05 ? 0.58 : 1;
-  const focus = ["attack", "defense", "magic", "magicDefense", "technique", "speed", "luck"][Math.floor(unitHash(baseName, "NameBattler-focus-v3") * 7)];
+  const focusList = ["hp", "mp", "tp", "attack", "defense", "magic", "magicDefense", "technique", "speed", "luck"];
+  const focus = focusList[Math.floor(unitHash(baseName, "NameBattler-focus-v3") * focusList.length)];
   const character = {
     id: `${baseName}-${seed}`,
     name: baseName,
@@ -174,6 +175,7 @@ function createCharacter(inputName, options = {}) {
   character.patternUsed = pattern.ok;
   character.currentHp = character.stats.hp;
   character.currentMp = character.stats.mp;
+  character.currentTp = character.stats.tp;
   return character;
 }
 
@@ -190,6 +192,7 @@ function buildStats(character, spike) {
   return {
     hp: calc(42, 8.3, j.hp, "hp"),
     mp: calc(14, 3.7, j.mp, "mp"),
+    tp: calc(12, 3.0, j.tp, "tp"),
     attack: calc(9, 2.45, j.attack, "attack"),
     defense: calc(8, 2.18, j.defense, "defense"),
     magic: calc(8, 2.35, j.magic, "magic"),
@@ -222,6 +225,7 @@ function makeEnemy(name, jobName, level, power) {
   enemy.stats = {
     hp: Math.round((64 + level * 9.6) * factor * job.hp),
     mp: Math.round((18 + level * 4.4) * factor * job.mp),
+    tp: Math.round((16 + level * 3.6) * factor * job.tp),
     attack: Math.round((12 + level * 2.8) * factor * job.attack),
     defense: Math.round((10 + level * 2.45) * factor * job.defense),
     magic: Math.round((10 + level * 2.65) * factor * job.magic),
@@ -232,6 +236,7 @@ function makeEnemy(name, jobName, level, power) {
   };
   enemy.currentHp = enemy.stats.hp;
   enemy.currentMp = enemy.stats.mp;
+  enemy.currentTp = enemy.stats.tp;
   return enemy;
 }
 
@@ -242,6 +247,7 @@ function cloneForBattle(character) {
     stats: { ...character.stats },
     currentHp: character.stats.hp,
     currentMp: character.stats.mp,
+    currentTp: character.stats.tp,
     defending: false,
     healUses: 0
   };
@@ -269,6 +275,7 @@ function learnedAbilitiesAtLevel(character, level) {
 function fullHeal(character) {
   character.currentHp = character.stats.hp;
   character.currentMp = character.stats.mp;
+  character.currentTp = character.stats.tp;
 }
 
 function expToNext(level) {
@@ -530,9 +537,9 @@ function helpModal() {
           <h3>2人用</h3>
           <p>プレイヤー1とプレイヤー2の名前を入れると、それぞれの名前から生まれたキャラクター同士で戦います。</p>
           <h3>戦闘操作</h3>
-          <p>マニュアル操作では、通常攻撃、職業スキル、防御、様子を見るを選べます。回復スキルは強力ですが消費MPが大きく、同じ戦闘で使うほど回復量が落ちます。オート操作に切り替えると、自動で行動を選びます。</p>
+          <p>マニュアル操作では、通常攻撃、魔法、特技、防御、様子を見るを選べます。回復魔法は強力ですが消費MPが大きく、同じ戦闘で使うほど回復量が落ちます。特技はTPを消費します。オート操作に切り替えると、自動で行動を選びます。</p>
           <h3>スキルの種類</h3>
-          <p>魔法は魔力と魔法防御、特技は技術と攻撃力が重要です。職業とレベルによって覚える魔法・特技が変わり、低レベルでは使えないものもあります。各キャラクターの能力欄と戦闘画面に、種類・消費MP・効果を表示しています。</p>
+          <p>魔法は魔力と魔法防御、特技は技術と攻撃力が重要です。職業とレベルによって覚える魔法・特技が変わり、低レベルでは使えないものもあります。各キャラクターの能力欄と戦闘画面に、種類・消費MPまたは消費TP・効果を表示しています。</p>
           <h3>職業の違い</h3>
           <p>戦士や武闘家は特技型、魔法使いや賢者は魔法型、暗黒騎士は物理と魔法の混合型です。魔法職は通常攻撃が弱い代わりに、低レベルからMPなしの基礎魔法を使えるようにしています。</p>
           <h3>名前パターン</h3>
@@ -554,25 +561,10 @@ function characterPreview(character) {
       <div class="job">${character.job.name} / ${character.job.role}</div>
       <p class="small-note">${character.job.note}</p>
       ${character.patternUsed ? `<p class="pattern-note">記号つきの名前パターンから呼び出しました。</p>` : ""}
-      <p class="pattern-note">次のレベルまで：${expToNext(character.level) - character.exp} 経験値</p>
-      <div class="skill-info">
-        <strong>パラメーターの見方</strong>
-        <span>魔力・魔法防御・技術を追加</span>
-        <p>魔法は魔力で威力が伸び、相手の魔法防御で軽減されます。特技は技術と攻撃力で威力が伸びます。職業によって、魔法型・特技型・混合型に分かれます。</p>
-      </div>
-      <div class="skill-info">
-        <strong>覚えている魔法</strong>
-        <span>${magic.length ? magic.map((ability) => `${ability.name}（${ability.type} / 消費MP ${ability.cost}）`).join("、") : "なし"}</span>
-        <p>${magic.length ? magic.map((ability) => ability.effect).join(" / ") : "この職業またはレベルでは、まだ魔法を使えません。"}</p>
-      </div>
-      <div class="skill-info">
-        <strong>覚えている特技</strong>
-        <span>${techniques.length ? techniques.map((ability) => `${ability.name}（${ability.type}${ability.cost ? ` / 消費MP ${ability.cost}` : ""}）`).join("、") : "なし"}</span>
-        <p>${techniques.length ? techniques.map((ability) => ability.effect).join(" / ") : "この職業またはレベルでは、まだ特技を使えません。"}</p>
-      </div>
       <div class="stat-grid">
         ${statItem("HP", character.stats.hp)}
         ${statItem("MP", character.stats.mp)}
+        ${statItem("TP", character.stats.tp)}
         ${statItem("攻撃力", character.stats.attack)}
         ${statItem("防御力", character.stats.defense)}
         ${statItem("魔力", character.stats.magic)}
@@ -580,6 +572,22 @@ function characterPreview(character) {
         ${statItem("技術", character.stats.technique)}
         ${statItem("素早さ", character.stats.speed)}
         ${statItem("運", character.stats.luck)}
+      </div>
+      <p class="pattern-note">次のレベルまで：${expToNext(character.level) - character.exp} 経験値</p>
+      <div class="skill-info">
+        <strong>覚えている魔法</strong>
+        <span>${magic.length ? magic.map((ability) => `${ability.name}（${ability.type}${resourceText(ability)}）`).join("、") : "なし"}</span>
+        <p>${magic.length ? magic.map((ability) => ability.effect).join(" / ") : "この職業またはレベルでは、まだ魔法を使えません。"}</p>
+      </div>
+      <div class="skill-info">
+        <strong>覚えている特技</strong>
+        <span>${techniques.length ? techniques.map((ability) => `${ability.name}（${ability.type}${resourceText(ability)}）`).join("、") : "なし"}</span>
+        <p>${techniques.length ? techniques.map((ability) => ability.effect).join(" / ") : "この職業またはレベルでは、まだ特技を使えません。"}</p>
+      </div>
+      <div class="skill-info">
+        <strong>パラメーターの見方</strong>
+        <span>魔法はMP、特技はTPを使います</span>
+        <p>魔法は魔力で威力が伸び、相手の魔法防御で軽減されます。特技は技術と攻撃力で威力が伸び、TPを消費します。職業によって、魔法型・特技型・混合型に分かれます。</p>
       </div>
     </div>
   `;
@@ -675,20 +683,20 @@ function renderBattle() {
           </div>
           <div class="command-grid">
             <button data-command="attack" ${commandDisabled()}>通常攻撃</button>
-            <button data-menu="magic" ${commandDisabled() || !magic.length ? "disabled" : ""}>魔法<span>${magic.length ? `${magic.length}個 使用可能` : "覚えていない"}</span></button>
-            <button data-menu="technique" ${commandDisabled() || !techniques.length ? "disabled" : ""}>特技<span>${techniques.length ? `${techniques.length}個 使用可能` : "覚えていない"}</span></button>
+            <button data-menu="magic" ${commandDisabled() || !magic.length ? "disabled" : ""}>魔法<span>${magic.length ? `${magic.length}種類` : "覚えていない"}</span></button>
+            <button data-menu="technique" ${commandDisabled() || !techniques.length ? "disabled" : ""}>特技<span>${techniques.length ? `${techniques.length}種類` : "覚えていない"}</span></button>
             <button data-command="defend" ${commandDisabled()}>防御</button>
             <button data-command="wait" ${commandDisabled()}>様子を見る</button>
           </div>
-          ${abilityMenuMarkup()}
         </div>
         <div class="log">${battle.log.map((line) => `<p>${escapeHtml(line)}</p>`).join("")}</div>
         <div class="panel skill-panel">
           <h2>スキル効果</h2>
-          <p><strong>${battle.player.displayName}</strong>：魔法 ${magic.length}個 / 特技 ${techniques.length}個</p>
-          <p><strong>${battle.enemy.displayName}</strong>：魔法 ${availableMagic(battle.enemy).length}個 / 特技 ${availableTechniques(battle.enemy).length}個</p>
+          <p><strong>${battle.player.displayName}</strong>：魔法 ${magic.length}種類 / 特技 ${techniques.length}種類</p>
+          <p><strong>${battle.enemy.displayName}</strong>：魔法 ${availableMagic(battle.enemy).length}種類 / 特技 ${availableTechniques(battle.enemy).length}種類</p>
         </div>
       </section>
+      ${abilityMenuMarkup()}
       ${helpModal()}
     </main>
   `;
@@ -704,6 +712,7 @@ function commandDisabled() {
 function fighterMarkup(character, side) {
   const hpRate = Math.max(0, character.currentHp / character.stats.hp) * 100;
   const mpRate = Math.max(0, character.currentMp / character.stats.mp) * 100;
+  const tpRate = Math.max(0, character.currentTp / character.stats.tp) * 100;
   return `
     <div class="side ${side}">
       <div class="nameplate">
@@ -713,10 +722,12 @@ function fighterMarkup(character, side) {
         <div class="bar-text"><span>HP</span><span>${Math.max(0, character.currentHp)} / ${character.stats.hp}</span></div>
         <div class="bar"><div class="fill mp-fill" style="width:${mpRate}%"></div></div>
         <div class="bar-text"><span>MP</span><span>${Math.max(0, character.currentMp)} / ${character.stats.mp}</span></div>
+        <div class="bar"><div class="fill tp-fill" style="width:${tpRate}%"></div></div>
+        <div class="bar-text"><span>TP</span><span>${Math.max(0, character.currentTp)} / ${character.stats.tp}</span></div>
       </div>
       <div class="sprite-wrap">
         <div class="shadow"></div>
-        <div class="sprite enter" data-sprite="${side}" style="--sprite-main:${character.tint};--sprite-dark:${character.dark};--sprite-aura:${character.aura}">
+        <div class="sprite" data-sprite="${side}" style="--sprite-main:${character.tint};--sprite-dark:${character.dark};--sprite-aura:${character.aura}">
           <div class="aura"></div>
           <div class="head"></div>
           <div class="body"></div>
@@ -762,22 +773,47 @@ function bindBattle() {
       playerAction({ ability: list[Number(button.dataset.ability)] });
     });
   });
+  app.querySelectorAll("[data-action='close-ability']").forEach((button) => {
+    button.addEventListener("click", (event) => {
+      if (event.target !== button && !button.classList.contains("ability-close")) return;
+      state.actionMenu = null;
+      render();
+    });
+  });
 }
 
 function abilityMenuMarkup() {
   if (!state.actionMenu || !state.battle || state.auto || state.battle.turn !== "player") return "";
   const list = state.actionMenu === "magic" ? availableMagic(state.battle.player) : availableTechniques(state.battle.player);
+  const title = state.actionMenu === "magic" ? "魔法を選ぶ" : "特技を選ぶ";
   return `
-    <div class="ability-list">
+    <div class="ability-popover-backdrop" data-action="close-ability">
+      <section class="ability-popover" role="dialog" aria-modal="true" aria-label="${title}">
+        <div class="ability-popover-head">
+          <h2>${title}</h2>
+          <button class="ability-close" data-action="close-ability" aria-label="閉じる">×</button>
+        </div>
+        <div class="ability-list">
       ${list.map((ability, index) => `
-        <button data-ability-type="${state.actionMenu}" data-ability="${index}" ${state.busy || state.battle.player.currentMp < ability.cost ? "disabled" : ""}>
+        <button data-ability-type="${state.actionMenu}" data-ability="${index}" ${state.busy || !hasResource(state.battle.player, ability) ? "disabled" : ""}>
           ${ability.name}
-          <span>${ability.type}${ability.cost ? ` / 消費MP ${ability.cost}` : ""}</span>
+          <span>${ability.type}${resourceText(ability)}</span>
           <small>${ability.effect}</small>
         </button>
       `).join("")}
+        </div>
+      </section>
     </div>
   `;
+}
+
+function resourceText(ability) {
+  if (!ability.cost) return " / 消費なし";
+  return ability.kind === "technique" ? ` / 消費TP ${ability.cost}` : ` / 消費MP ${ability.cost}`;
+}
+
+function hasResource(character, ability) {
+  return ability.kind === "technique" ? character.currentTp >= ability.cost : character.currentMp >= ability.cost;
 }
 
 function logLine(text) {
@@ -798,7 +834,7 @@ function scheduleAuto() {
 
 function pickAction(actor, target) {
   const magic = availableMagic(actor).filter((ability) => actor.currentMp >= ability.cost);
-  const techniques = availableTechniques(actor).filter((ability) => actor.currentMp >= ability.cost);
+  const techniques = availableTechniques(actor).filter((ability) => actor.currentTp >= ability.cost);
   const heals = magic.filter((ability) => ability.kind === "heal");
   const buffs = magic.filter((ability) => ability.kind === "buff");
   const attacks = [...techniques, ...magic.filter((ability) => ability.kind === "magic")];
@@ -846,9 +882,13 @@ function performAction(actor, target, command, done) {
     return;
   }
 
-  if (action === "ability" && actor.currentMp >= command.ability.cost) {
+  if (action === "ability" && hasResource(actor, command.ability)) {
     const ability = command.ability;
-    actor.currentMp -= ability.cost;
+    if (ability.kind === "technique") {
+      actor.currentTp -= ability.cost;
+    } else {
+      actor.currentMp -= ability.cost;
+    }
     if (ability.kind === "heal") {
       actor.healUses += 1;
       const baseHeal = (actor.stats.magic * 0.62 + actor.stats.magicDefense * 0.28 + actor.stats.luck * 0.16 + actor.level) * ability.power;
@@ -884,7 +924,8 @@ function performAction(actor, target, command, done) {
   }
 
   if (action === "ability") {
-    logLine(`${actor.displayName}は力を解き放とうとしたが、MPが足りない。`);
+    const resource = command.ability.kind === "technique" ? "TP" : "MP";
+    logLine(`${actor.displayName}は力を解き放とうとしたが、${resource}が足りない。`);
   }
   const damage = calcDamage(actor, target, "attack");
   target.currentHp -= damage;
