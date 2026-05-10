@@ -4,25 +4,26 @@ const app = document.querySelector("#app");
 
 const SYMBOLS = ["◆", "◇", "●", "○", "★", "☆", "▲", "△", "■", "□", "▼", "▽", "✦", "✧", "※", "◎"];
 const JOBS = [
-  { name: "戦士", hp: 1.22, mp: 0.62, attack: 1.28, defense: 1.18, magic: 0.62, speed: 0.88, luck: 0.9, skill: "覇王斬", cost: 8, kind: "blade" },
-  { name: "魔法使い", hp: 0.82, mp: 1.35, attack: 0.72, defense: 0.78, magic: 1.42, speed: 1.02, luck: 1.0, skill: "黒雷詠唱", cost: 12, kind: "magic" },
-  { name: "僧侶", hp: 0.98, mp: 1.2, attack: 0.82, defense: 1.04, magic: 1.12, speed: 0.92, luck: 1.24, skill: "聖光再生", cost: 10, kind: "heal" },
-  { name: "忍者", hp: 0.92, mp: 0.86, attack: 1.08, defense: 0.82, magic: 0.82, speed: 1.48, luck: 1.18, skill: "影縫い", cost: 9, kind: "blade" },
-  { name: "暗黒騎士", hp: 1.12, mp: 0.92, attack: 1.35, defense: 1.05, magic: 1.06, speed: 0.76, luck: 0.72, skill: "冥王炎", cost: 13, kind: "magic" },
-  { name: "武闘家", hp: 1.08, mp: 0.58, attack: 1.22, defense: 0.92, magic: 0.58, speed: 1.3, luck: 1.08, skill: "竜牙連撃", cost: 7, kind: "blade" },
-  { name: "賢者", hp: 0.96, mp: 1.42, attack: 0.9, defense: 0.96, magic: 1.34, speed: 0.94, luck: 1.14, skill: "星詠み", cost: 14, kind: "magic" },
-  { name: "盗賊", hp: 0.9, mp: 0.74, attack: 0.96, defense: 0.8, magic: 0.74, speed: 1.34, luck: 1.48, skill: "運命強奪", cost: 8, kind: "blade" }
+  { name: "戦士", hp: 1.22, mp: 0.62, attack: 1.28, defense: 1.18, magic: 0.62, speed: 0.88, luck: 0.9, skill: "覇王斬", cost: 8, kind: "blade", type: "攻撃技", effect: "攻撃力を中心にした強い斬撃ダメージ" },
+  { name: "魔法使い", hp: 0.82, mp: 1.35, attack: 0.72, defense: 0.78, magic: 1.42, speed: 1.02, luck: 1.0, skill: "黒雷詠唱", cost: 12, kind: "magic", type: "攻撃魔法", effect: "魔力を中心にした雷属性の大ダメージ" },
+  { name: "僧侶", hp: 0.98, mp: 1.2, attack: 0.82, defense: 1.04, magic: 1.12, speed: 0.92, luck: 1.24, skill: "聖光再生", cost: 24, kind: "heal", type: "回復魔法", effect: "HPを回復する。同じ戦闘で使うほど回復量が下がる" },
+  { name: "忍者", hp: 0.92, mp: 0.86, attack: 1.08, defense: 0.82, magic: 0.82, speed: 1.48, luck: 1.18, skill: "影縫い", cost: 9, kind: "blade", type: "攻撃技", effect: "素早い一撃で相手を切り裂く" },
+  { name: "暗黒騎士", hp: 1.12, mp: 0.92, attack: 1.35, defense: 1.05, magic: 1.06, speed: 0.76, luck: 0.72, skill: "冥王炎", cost: 13, kind: "magic", type: "攻撃魔法", effect: "攻撃力と魔力を混ぜた闇炎ダメージ" },
+  { name: "武闘家", hp: 1.08, mp: 0.58, attack: 1.22, defense: 0.92, magic: 0.58, speed: 1.3, luck: 1.08, skill: "竜牙連撃", cost: 7, kind: "blade", type: "攻撃技", effect: "低燃費で繰り出せる連続打撃" },
+  { name: "賢者", hp: 0.96, mp: 1.42, attack: 0.9, defense: 0.96, magic: 1.34, speed: 0.94, luck: 1.14, skill: "星詠み", cost: 14, kind: "magic", type: "攻撃魔法", effect: "魔力で星光を落とす安定した大ダメージ" },
+  { name: "盗賊", hp: 0.9, mp: 0.74, attack: 0.96, defense: 0.8, magic: 0.74, speed: 1.34, luck: 1.48, skill: "運命強奪", cost: 8, kind: "blade", type: "攻撃技", effect: "運の高さも乗る奇襲ダメージ" }
 ];
 
 const STAGES = [
-  makeEnemy("影の見習い", "盗賊", 1, 72),
-  makeEnemy("古城の番兵", "戦士", 12, 118),
-  makeEnemy("月読の僧兵", "僧侶", 19, 140),
-  makeEnemy("黒衣の術士", "魔法使い", 28, 168),
-  makeEnemy("疾風の刃", "忍者", 39, 198),
-  makeEnemy("竜骨の武人", "武闘家", 52, 232),
-  makeEnemy("虚無の賢者", "賢者", 68, 276),
-  makeEnemy("終焉の暗黒王", "暗黒騎士", 86, 330)
+  makeEnemy("影の見習い", "盗賊", 1, 62),
+  makeEnemy("草原の番兵", "戦士", 4, 76),
+  makeEnemy("古城の剣士", "戦士", 8, 92),
+  makeEnemy("月読の僧兵", "僧侶", 13, 102),
+  makeEnemy("黒衣の術士", "魔法使い", 19, 116),
+  makeEnemy("疾風の刃", "忍者", 27, 132),
+  makeEnemy("竜骨の武人", "武闘家", 38, 154),
+  makeEnemy("虚無の賢者", "賢者", 54, 182),
+  makeEnemy("終焉の暗黒王", "暗黒騎士", 74, 220)
 ];
 
 const state = {
@@ -35,6 +36,7 @@ const state = {
   enemy: null,
   second: null,
   stageIndex: 0,
+  selectedStage: 0,
   battle: null,
   auto: false,
   busy: false,
@@ -42,7 +44,8 @@ const state = {
   audioOn: true,
   audioReady: false,
   audio: null,
-  musicTimer: null
+  musicTimer: null,
+  musicMode: null
 };
 
 function hashText(text) {
@@ -104,9 +107,9 @@ function makeNamePattern(character) {
 function rareLevelFromName(name) {
   const baseRoll = unitHash(name, "NameBattler-level-v3");
   const omenRoll = unitHash(name, "NameBattler-level-omen-v3");
-  const base = baseRoll < 0.025
-    ? 1
-    : 2 + Math.floor(Math.pow((baseRoll - 0.025) / 0.975, 2.18) * 97);
+  const base = baseRoll < 0.5
+    ? Math.round(1 + 19 * Math.pow(baseRoll / 0.5, 0.34))
+    : Math.round(20 + 79 * Math.pow((baseRoll - 0.5) / 0.5, 2.2));
   if (omenRoll > 0.992) return clamp(base + 38, 1, 99);
   if (omenRoll > 0.972) return clamp(base + 18, 1, 99);
   if (omenRoll < 0.026) return clamp(base - 5, 1, 99);
@@ -213,7 +216,8 @@ function cloneForBattle(character) {
     stats: { ...character.stats },
     currentHp: character.stats.hp,
     currentMp: character.stats.mp,
-    defending: false
+    defending: false,
+    healUses: 0
   };
 }
 
@@ -253,6 +257,7 @@ function render() {
 }
 
 function renderMenu() {
+  if (state.audioReady && state.audioOn) startMusic("menu");
   const nameOneValue = document.querySelector("#name-one")?.value || "";
   const nameTwoValue = document.querySelector("#name-two")?.value || "";
   const hasDecision = Boolean(state.preview && (state.mode === "solo" || state.previewTwo));
@@ -285,7 +290,14 @@ function renderMenu() {
                 <span>プレイヤー2の名前</span>
                 <input id="name-two" value="${escapeAttr(nameTwoValue)}" placeholder="例：花子">
               </label>
-            ` : ""}
+            ` : `
+              <label class="field">
+                <span>ステージ選択</span>
+                <select id="stage-select">
+                  ${STAGES.map((stage, index) => `<option value="${index}" ${state.selectedStage === index ? "selected" : ""}>第${index + 1}ステージ：${stage.name} / レベル ${stage.level}</option>`).join("")}
+                </select>
+              </label>
+            `}
             <div class="start-row">
               <button class="primary" data-action="decide">決定</button>
               ${hasDecision ? `<button data-action="start">戦いを始める</button>` : ""}
@@ -327,13 +339,19 @@ function bindMenu() {
       state.second = null;
     });
   });
+  const stageSelect = app.querySelector("#stage-select");
+  if (stageSelect) {
+    stageSelect.addEventListener("change", () => {
+      state.selectedStage = Number(stageSelect.value);
+    });
+  }
   app.querySelector("[data-action='decide']").addEventListener("click", decideNames);
   const start = app.querySelector("[data-action='start']");
   if (start) start.addEventListener("click", startGame);
 }
 
 function decideNames() {
-  ensureAudio();
+  ensureAudio("menu");
   try {
     state.preview = createCharacter(app.querySelector("#name-one").value);
     state.player = state.preview;
@@ -388,15 +406,17 @@ function helpModal() {
           <h3>名前でキャラクターを作る</h3>
           <p>名前を入力すると、職業、レベル、HP、MP、攻撃力、防御力、魔力、素早さ、運が決まります。同じ名前なら、いつでも同じ能力になります。</p>
           <h3>1人用</h3>
-          <p>固定された敵を順番に倒してステージを進めます。敵の強さはあなたのレベルに合わせて変わらないので、強い名前や成長した名前パターンが攻略の鍵になります。</p>
+          <p>固定された敵を順番に倒してステージを進めます。開始前にステージを選べます。敵の強さはあなたのレベルに合わせて変わらないので、強い名前や成長した名前パターンが攻略の鍵になります。</p>
           <h3>2人用</h3>
           <p>プレイヤー1とプレイヤー2の名前を入れると、それぞれの名前から生まれたキャラクター同士で戦います。</p>
           <h3>戦闘操作</h3>
-          <p>マニュアル操作では、通常攻撃、職業スキル、防御、様子を見るを選べます。オート操作に切り替えると、自動で行動を選びます。戦闘中にいつでも切り替えできます。</p>
+          <p>マニュアル操作では、通常攻撃、職業スキル、防御、様子を見るを選べます。回復スキルは強力ですが消費MPが大きく、同じ戦闘で使うほど回復量が落ちます。オート操作に切り替えると、自動で行動を選びます。</p>
+          <h3>スキルの種類</h3>
+          <p>攻撃技は攻撃力を中心にした物理寄りのダメージ、攻撃魔法は魔力を中心にしたダメージ、回復魔法はHP回復です。各キャラクターの能力欄と戦闘画面に、種類・消費MP・効果を表示しています。</p>
           <h3>名前パターン</h3>
           <p>1人用の戦闘後に、元の名前の後ろへ短い記号を足した名前パターンが表示されます。別人の名前には変わりません。そのまま名前欄に入れると、そのレベルの強さとして1人用でも2人用でも使えます。</p>
           <h3>音について</h3>
-          <p>音はデフォルトでオンです。ブラウザの制限により、最初に「決定」や「戦いを始める」を押した後に再生されます。タイトル横の音ボタンで、いつでもオンとオフを切り替えできます。</p>
+          <p>音はデフォルトでオンです。タイトル画面と戦闘画面では別のBGMが流れます。ブラウザの制限により、最初に「決定」や「戦いを始める」を押した後に再生されます。</p>
         </div>
       </section>
     </div>
@@ -409,6 +429,11 @@ function characterPreview(character) {
       <div class="name-row"><span>${escapeHtml(character.name)}</span><span>レベル ${character.level}</span></div>
       <div class="job">${character.job.name}</div>
       ${character.patternUsed ? `<p class="pattern-note">記号つきの名前パターンから呼び出しました。</p>` : ""}
+      <div class="skill-info">
+        <strong>${character.job.skill}</strong>
+        <span>${character.job.type} / 消費MP ${character.job.cost}</span>
+        <p>${character.job.effect}</p>
+      </div>
       <div class="stat-grid">
         ${statItem("HP", character.stats.hp)}
         ${statItem("MP", character.stats.mp)}
@@ -431,7 +456,7 @@ function statItem(label, value) {
 }
 
 function startGame() {
-  ensureAudio();
+  ensureAudio("battle");
   try {
     if (!state.preview || (state.mode === "duel" && !state.previewTwo)) {
       decideNames();
@@ -440,7 +465,9 @@ function startGame() {
     const one = state.preview;
     if (state.mode === "solo") {
       state.player = one;
-      state.stageIndex = 0;
+      const stageSelect = app.querySelector("#stage-select");
+      state.stageIndex = stageSelect ? Number(stageSelect.value) : state.selectedStage;
+      state.selectedStage = state.stageIndex;
       startBattle(cloneForBattle(state.player), cloneForBattle(STAGES[state.stageIndex]));
     } else {
       const two = state.previewTwo;
@@ -455,6 +482,7 @@ function startGame() {
 }
 
 function startBattle(player, enemy) {
+  ensureAudio("battle");
   state.screen = "battle";
   state.auto = false;
   state.busy = false;
@@ -472,6 +500,7 @@ function startBattle(player, enemy) {
 }
 
 function renderBattle() {
+  if (state.audioReady && state.audioOn) startMusic("battle");
   const battle = state.battle;
   app.innerHTML = `
     <main class="shell battle">
@@ -505,12 +534,17 @@ function renderBattle() {
           </div>
           <div class="command-grid">
             <button data-command="attack" ${commandDisabled()}>通常攻撃</button>
-            <button data-command="skill" ${commandDisabled()}>${battle.player.job.skill}<span>消費MP ${battle.player.job.cost}</span></button>
+            <button data-command="skill" title="${escapeAttr(battle.player.job.effect)}" ${commandDisabled()}>${battle.player.job.skill}<span>${battle.player.job.type} / 消費MP ${battle.player.job.cost}</span></button>
             <button data-command="defend" ${commandDisabled()}>防御</button>
             <button data-command="wait" ${commandDisabled()}>様子を見る</button>
           </div>
         </div>
         <div class="log">${battle.log.map((line) => `<p>${escapeHtml(line)}</p>`).join("")}</div>
+        <div class="panel skill-panel">
+          <h2>スキル効果</h2>
+          <p><strong>${battle.player.job.skill}</strong>：${battle.player.job.type}。${battle.player.job.effect}</p>
+          <p><strong>${battle.enemy.job.skill}</strong>：${battle.enemy.job.type}。${battle.enemy.job.effect}</p>
+        </div>
       </section>
       ${helpModal()}
     </main>
@@ -592,9 +626,9 @@ function scheduleAuto() {
 }
 
 function pickAction(actor, target) {
-  if (actor.currentHp < actor.stats.hp * 0.35 && actor.job.kind === "heal" && actor.currentMp >= actor.job.cost) return "skill";
+  if (actor.currentHp < actor.stats.hp * 0.28 && actor.job.kind === "heal" && actor.currentMp >= actor.job.cost && actor.healUses < 3) return "skill";
   if (target.currentHp < actor.stats.attack * 1.25) return "attack";
-  if (actor.currentMp >= actor.job.cost && Math.random() < 0.62) return "skill";
+  if (actor.job.kind !== "heal" && actor.currentMp >= actor.job.cost && Math.random() < 0.58) return "skill";
   if (actor.currentHp < actor.stats.hp * 0.22 && Math.random() < 0.35) return "defend";
   return "attack";
 }
@@ -637,7 +671,11 @@ function performAction(actor, target, command, done) {
   if (action === "skill" && actor.currentMp >= actor.job.cost) {
     actor.currentMp -= actor.job.cost;
     if (actor.job.kind === "heal") {
-      const amount = Math.round(actor.stats.magic * 1.8 + actor.stats.luck * 0.7);
+      actor.healUses += 1;
+      const baseHeal = actor.stats.magic * 0.72 + actor.stats.luck * 0.22 + actor.level * 1.1;
+      const fatigue = Math.pow(0.68, actor.healUses - 1);
+      const cap = actor.stats.hp * 0.28;
+      const amount = Math.max(8, Math.round(Math.min(baseHeal * fatigue, cap)));
       actor.currentHp = Math.min(actor.stats.hp, actor.currentHp + amount);
       logLine(`${actor.displayName}の${actor.job.skill}。聖なる光が傷を包み、HPが${amount}回復した。`);
       playTone("heal");
@@ -746,6 +784,7 @@ function finishBattle(playerWon) {
 }
 
 function renderResult() {
+  if (state.audioReady && state.audioOn) startMusic("menu");
   const result = state.result;
   app.innerHTML = `
     <main class="shell">
@@ -865,7 +904,7 @@ function showResultFlash() {
   });
 }
 
-function ensureAudio() {
+function ensureAudio(mode = state.screen === "battle" ? "battle" : "menu") {
   if (!state.audioOn) return;
   const AudioContext = window.AudioContext || window.webkitAudioContext;
   if (!AudioContext) return;
@@ -876,7 +915,7 @@ function ensureAudio() {
   if (state.audio.state === "suspended") {
     state.audio.resume();
   }
-  startMusic();
+  startMusic(mode);
 }
 
 function toggleAudio() {
@@ -889,26 +928,38 @@ function toggleAudio() {
   render();
 }
 
-function startMusic() {
+function startMusic(mode = "menu") {
   if (!state.audioOn || !state.audio) return;
+  if (state.musicTimer && state.musicMode === mode) return;
   stopMusic();
+  state.musicMode = mode;
   let step = 0;
   state.musicTimer = setInterval(() => {
     if (!state.audioOn || !state.audio) {
       stopMusic();
       return;
     }
-    const notes = [110, 146.83, 164.81, 196, 220, 196, 164.81, 146.83];
-    const note = notes[step % notes.length];
-    tone(note, 0.09, "sawtooth", 0.035);
-    if (step % 4 === 0) tone(note / 2, 0.16, "triangle", 0.025);
+    if (mode === "battle") {
+      const bass = [82.41, 82.41, 110, 82.41, 123.47, 110, 98, 73.42];
+      const lead = [329.63, 392, 440, 493.88, 440, 392, 329.63, 293.66];
+      tone(bass[step % bass.length], 0.13, "sawtooth", 0.045);
+      if (step % 2 === 0) tone(lead[step % lead.length], 0.08, "square", 0.032);
+      if (step % 4 === 0) tone(55, 0.08, "triangle", 0.07);
+      if (step % 4 === 2) tone(1760, 0.025, "square", 0.018);
+    } else {
+      const notes = [196, 246.94, 293.66, 329.63, 392, 329.63, 293.66, 246.94];
+      const note = notes[step % notes.length];
+      tone(note, 0.16, "triangle", 0.026);
+      if (step % 4 === 0) tone(note / 2, 0.24, "sine", 0.018);
+    }
     step += 1;
-  }, 220);
+  }, mode === "battle" ? 150 : 260);
 }
 
 function stopMusic() {
   if (state.musicTimer) clearInterval(state.musicTimer);
   state.musicTimer = null;
+  state.musicMode = null;
 }
 
 function tone(freq, duration, type, volume) {
@@ -928,7 +979,7 @@ function tone(freq, duration, type, volume) {
 
 function playTone(kind) {
   if (!state.audioOn) return;
-  ensureAudio();
+  ensureAudio(state.screen === "battle" ? "battle" : "menu");
   if (!state.audioReady) return;
   if (kind === "attack") {
     tone(660, 0.08, "square", 0.09);
