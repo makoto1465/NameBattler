@@ -4,14 +4,35 @@ const app = document.querySelector("#app");
 
 const SYMBOLS = ["◆", "◇", "●", "○", "★", "☆", "▲", "△", "■", "□", "▼", "▽", "✦", "✧", "※", "◎"];
 const JOBS = [
-  { name: "戦士", hp: 1.22, mp: 0.62, attack: 1.28, defense: 1.18, magic: 0.62, speed: 0.88, luck: 0.9, skill: "覇王斬", cost: 8, kind: "blade", type: "攻撃技", effect: "攻撃力を中心にした強い斬撃ダメージ" },
-  { name: "魔法使い", hp: 0.82, mp: 1.35, attack: 0.72, defense: 0.78, magic: 1.42, speed: 1.02, luck: 1.0, skill: "黒雷詠唱", cost: 12, kind: "magic", type: "攻撃魔法", effect: "魔力を中心にした雷属性の大ダメージ" },
-  { name: "僧侶", hp: 0.98, mp: 1.2, attack: 0.82, defense: 1.04, magic: 1.12, speed: 0.92, luck: 1.24, skill: "聖光再生", cost: 24, kind: "heal", type: "回復魔法", effect: "HPを回復する。同じ戦闘で使うほど回復量が下がる" },
-  { name: "忍者", hp: 0.92, mp: 0.86, attack: 1.08, defense: 0.82, magic: 0.82, speed: 1.48, luck: 1.18, skill: "影縫い", cost: 9, kind: "blade", type: "攻撃技", effect: "素早い一撃で相手を切り裂く" },
-  { name: "暗黒騎士", hp: 1.12, mp: 0.92, attack: 1.35, defense: 1.05, magic: 1.06, speed: 0.76, luck: 0.72, skill: "冥王炎", cost: 13, kind: "magic", type: "攻撃魔法", effect: "攻撃力と魔力を混ぜた闇炎ダメージ" },
-  { name: "武闘家", hp: 1.08, mp: 0.58, attack: 1.22, defense: 0.92, magic: 0.58, speed: 1.3, luck: 1.08, skill: "竜牙連撃", cost: 7, kind: "blade", type: "攻撃技", effect: "低燃費で繰り出せる連続打撃" },
-  { name: "賢者", hp: 0.96, mp: 1.42, attack: 0.9, defense: 0.96, magic: 1.34, speed: 0.94, luck: 1.14, skill: "星詠み", cost: 14, kind: "magic", type: "攻撃魔法", effect: "魔力で星光を落とす安定した大ダメージ" },
-  { name: "盗賊", hp: 0.9, mp: 0.74, attack: 0.96, defense: 0.8, magic: 0.74, speed: 1.34, luck: 1.48, skill: "運命強奪", cost: 8, kind: "blade", type: "攻撃技", effect: "運の高さも乗る奇襲ダメージ" }
+  { name: "戦士", role: "物理前衛", note: "攻撃力と防御力が高く、特技で押す。魔法は苦手。", hp: 1.22, mp: 0.62, attack: 1.28, defense: 1.18, magic: 0.62, magicDefense: 0.86, technique: 1.05, speed: 0.88, luck: 0.9 },
+  { name: "魔法使い", role: "攻撃魔法", note: "通常攻撃は弱いが、低レベルからMPなしの魔法を使える。魔力で戦う。", hp: 0.82, mp: 1.35, attack: 0.72, defense: 0.78, magic: 1.42, magicDefense: 1.24, technique: 0.76, speed: 1.02, luck: 1.0 },
+  { name: "僧侶", role: "回復・耐久", note: "魔法防御と回復が強い。攻撃力は控えめで長期戦向き。", hp: 0.98, mp: 1.2, attack: 0.82, defense: 1.04, magic: 1.12, magicDefense: 1.36, technique: 0.8, speed: 0.92, luck: 1.24 },
+  { name: "忍者", role: "高速技巧", note: "素早さと技術で先手を取り、特技で削る。耐久は低め。", hp: 0.92, mp: 0.86, attack: 1.08, defense: 0.82, magic: 0.82, magicDefense: 0.92, technique: 1.42, speed: 1.48, luck: 1.18 },
+  { name: "暗黒騎士", role: "物魔混合", note: "攻撃力と闇魔法を両立するが、運と素早さは低い。", hp: 1.12, mp: 0.92, attack: 1.35, defense: 1.05, magic: 1.06, magicDefense: 0.98, technique: 1.02, speed: 0.76, luck: 0.72 },
+  { name: "武闘家", role: "特技連打", note: "技術と攻撃力で戦う。MPは低いが低燃費の特技が得意。", hp: 1.08, mp: 0.58, attack: 1.22, defense: 0.92, magic: 0.58, magicDefense: 0.82, technique: 1.48, speed: 1.3, luck: 1.08 },
+  { name: "賢者", role: "万能魔法", note: "攻撃魔法と回復魔法を覚える万能職。伸びるほど選択肢が増える。", hp: 0.96, mp: 1.42, attack: 0.9, defense: 0.96, magic: 1.34, magicDefense: 1.3, technique: 0.88, speed: 0.94, luck: 1.14 },
+  { name: "盗賊", role: "運と技巧", note: "技術と運で崩す職業。高レベルで奇襲特技が強くなる。", hp: 0.9, mp: 0.74, attack: 0.96, defense: 0.8, magic: 0.74, magicDefense: 0.86, technique: 1.32, speed: 1.34, luck: 1.48 }
+];
+
+const MAGIC_BOOK = [
+  { name: "魔力弾", minLevel: 1, jobs: ["魔法使い", "僧侶", "賢者", "暗黒騎士"], cost: 0, kind: "magic", power: 1.12, type: "攻撃魔法", effect: "MPなしで撃てる基礎魔法。魔法職の通常攻撃代わりになる" },
+  { name: "火炎弾", minLevel: 5, jobs: ["魔法使い", "賢者", "暗黒騎士"], cost: 8, kind: "magic", power: 1.0, type: "攻撃魔法", effect: "魔力で火球を放つ基本魔法" },
+  { name: "魔力集中", minLevel: 10, jobs: ["魔法使い", "僧侶", "賢者"], cost: 6, kind: "buff", power: 1.0, type: "補助魔法", effect: "身構えて次の被ダメージを抑える補助魔法" },
+  { name: "癒しの光", minLevel: 8, jobs: ["僧侶", "賢者"], cost: 18, kind: "heal", power: 0.82, type: "回復魔法", effect: "HPを少し回復する。同じ戦闘で使うほど効果低下" },
+  { name: "黒雷", minLevel: 18, jobs: ["魔法使い", "賢者", "暗黒騎士"], cost: 16, kind: "magic", power: 1.34, type: "攻撃魔法", effect: "魔力を中心にした雷撃ダメージ" },
+  { name: "聖光再生", minLevel: 24, jobs: ["僧侶", "賢者"], cost: 28, kind: "heal", power: 1.12, type: "回復魔法", effect: "HPを大きく回復するが消費MPが重い" },
+  { name: "冥王炎", minLevel: 34, jobs: ["暗黒騎士", "魔法使い"], cost: 24, kind: "magic", power: 1.62, type: "攻撃魔法", effect: "魔力と攻撃力を混ぜた闇炎ダメージ" },
+  { name: "星詠み", minLevel: 48, jobs: ["賢者"], cost: 32, kind: "magic", power: 1.92, type: "攻撃魔法", effect: "高い魔法防御も貫きやすい星光魔法" }
+];
+
+const TECHNIQUE_BOOK = [
+  { name: "けん制", minLevel: 1, jobs: ["盗賊", "忍者", "魔法使い", "僧侶", "賢者"], cost: 0, kind: "technique", power: 0.72, type: "特技", effect: "技術で相手の隙を突く軽い特技" },
+  { name: "強打", minLevel: 1, jobs: ["戦士", "武闘家", "暗黒騎士"], cost: 0, kind: "technique", power: 0.92, type: "特技", effect: "技術と攻撃力で打ち込む基本特技" },
+  { name: "影縫い", minLevel: 7, jobs: ["忍者", "盗賊"], cost: 4, kind: "technique", power: 1.08, type: "特技", effect: "技術と素早さを乗せた一撃" },
+  { name: "竜牙連撃", minLevel: 15, jobs: ["武闘家", "忍者"], cost: 8, kind: "technique", power: 1.34, type: "特技", effect: "低燃費で連続攻撃を叩き込む" },
+  { name: "覇王斬", minLevel: 22, jobs: ["戦士", "暗黒騎士"], cost: 10, kind: "technique", power: 1.56, type: "特技", effect: "攻撃力と技術を合わせた重い斬撃" },
+  { name: "運命強奪", minLevel: 30, jobs: ["盗賊"], cost: 10, kind: "technique", power: 1.42, type: "特技", effect: "運の高さも乗る奇襲ダメージ" },
+  { name: "無双乱舞", minLevel: 45, jobs: ["武闘家", "忍者"], cost: 16, kind: "technique", power: 1.86, type: "特技", effect: "技術が高いほど伸びる上級特技" }
 ];
 
 const STAGES = [
@@ -27,7 +48,7 @@ const STAGES = [
 ];
 
 const state = {
-  screen: "menu",
+  screen: "title",
   mode: "solo",
   error: "",
   preview: null,
@@ -40,6 +61,7 @@ const state = {
   battle: null,
   auto: false,
   busy: false,
+  actionMenu: null,
   result: null,
   audioOn: true,
   audioReady: false,
@@ -131,7 +153,7 @@ function createCharacter(inputName, options = {}) {
   const nature = 0.78 + Math.pow(unitHash(baseName, "NameBattler-nature-v3"), 2.2) * 0.82;
   const spikeRoll = unitHash(baseName, "NameBattler-spike-v3");
   const spike = spikeRoll > 0.94 ? 1.65 : spikeRoll < 0.05 ? 0.58 : 1;
-  const focus = ["attack", "defense", "magic", "speed", "luck"][Math.floor(unitHash(baseName, "NameBattler-focus-v3") * 5)];
+  const focus = ["attack", "defense", "magic", "magicDefense", "technique", "speed", "luck"][Math.floor(unitHash(baseName, "NameBattler-focus-v3") * 7)];
   const character = {
     id: `${baseName}-${seed}`,
     name: baseName,
@@ -171,6 +193,8 @@ function buildStats(character, spike) {
     attack: calc(9, 2.45, j.attack, "attack"),
     defense: calc(8, 2.18, j.defense, "defense"),
     magic: calc(8, 2.35, j.magic, "magic"),
+    magicDefense: calc(7, 2.1, j.magicDefense, "magicDefense"),
+    technique: calc(7, 2.25, j.technique, "technique"),
     speed: calc(7, 2.05, j.speed, "speed"),
     luck: calc(5, 1.8, j.luck, "luck")
   };
@@ -201,6 +225,8 @@ function makeEnemy(name, jobName, level, power) {
     attack: Math.round((12 + level * 2.8) * factor * job.attack),
     defense: Math.round((10 + level * 2.45) * factor * job.defense),
     magic: Math.round((10 + level * 2.65) * factor * job.magic),
+    magicDefense: Math.round((9 + level * 2.25) * factor * job.magicDefense),
+    technique: Math.round((9 + level * 2.45) * factor * job.technique),
     speed: Math.round((8 + level * 2.25) * factor * job.speed),
     luck: Math.round((6 + level * 1.95) * factor * job.luck)
   };
@@ -221,6 +247,25 @@ function cloneForBattle(character) {
   };
 }
 
+function availableMagic(character) {
+  const learned = MAGIC_BOOK.filter((ability) => character.level >= ability.minLevel && ability.jobs.includes(character.job.name));
+  if (!learned.length && character.stats.magic > character.stats.attack * 1.05) {
+    return [MAGIC_BOOK[0]];
+  }
+  return learned;
+}
+
+function availableTechniques(character) {
+  return TECHNIQUE_BOOK.filter((ability) => character.level >= ability.minLevel && ability.jobs.includes(character.job.name));
+}
+
+function learnedAbilitiesAtLevel(character, level) {
+  const jobName = character.job.name;
+  return [...MAGIC_BOOK, ...TECHNIQUE_BOOK]
+    .filter((ability) => ability.minLevel === level && ability.jobs.includes(jobName))
+    .map((ability) => ability.name);
+}
+
 function fullHeal(character) {
   character.currentHp = character.stats.hp;
   character.currentMp = character.stats.mp;
@@ -231,20 +276,30 @@ function expToNext(level) {
 }
 
 function awardExp(player, enemy, stageIndex) {
-  const enemyPower = enemy.stats.hp + enemy.stats.attack * 9 + enemy.stats.magic * 7 + enemy.stats.defense * 6;
+  const enemyPower = enemy.stats.hp + enemy.stats.attack * 8 + enemy.stats.magic * 7 + enemy.stats.technique * 6 + enemy.stats.defense * 5 + enemy.stats.magicDefense * 4;
   const gained = Math.round(enemy.level * 42 + enemyPower / 5 + stageIndex * 55);
   const before = player.level;
+  const learned = [];
   player.exp += gained;
   while (player.level < 999 && player.exp >= expToNext(player.level)) {
     player.exp -= expToNext(player.level);
     player.level += 1;
+    learned.push(...learnedAbilitiesAtLevel(player, player.level));
     player.stats = buildStats(player, player.spike || 1);
   }
   fullHeal(player);
-  return { gained, levels: player.level - before };
+  return { gained, levels: player.level - before, learned };
 }
 
 function render() {
+  if (state.screen === "title") {
+    renderTitle();
+    return;
+  }
+  if (state.screen === "mode") {
+    renderModeSelect();
+    return;
+  }
   if (state.screen === "battle") {
     renderBattle();
     return;
@@ -253,10 +308,80 @@ function render() {
     renderResult();
     return;
   }
-  renderMenu();
+  renderSetup();
 }
 
-function renderMenu() {
+function renderTitle() {
+  if (state.audioReady && state.audioOn) startMusic("menu");
+  app.innerHTML = `
+    <main class="shell title-screen">
+      <div class="title-orbit"></div>
+      <section class="title-hero">
+        <p class="title-kicker">名前が力になるRPG風バトル</p>
+        <h1 class="title mega">NameBattler</h1>
+        <p class="subtitle">名前から職業、レベル、魔法、特技、運命の能力を呼び出せ。</p>
+        <div class="title-actions">
+          <button class="primary start-button" data-action="open-mode">ゲームスタート</button>
+          <button class="icon-button" data-action="help" aria-label="遊び方を開く" title="遊び方">?</button>
+          ${soundButton()}
+        </div>
+      </section>
+      ${helpModal()}
+    </main>
+  `;
+  bindCommon();
+  app.querySelector("[data-action='open-mode']").addEventListener("click", () => {
+    ensureAudio("menu");
+    state.screen = "mode";
+    state.preview = null;
+    state.previewTwo = null;
+    render();
+  });
+}
+
+function renderModeSelect() {
+  if (state.audioReady && state.audioOn) startMusic("menu");
+  app.innerHTML = `
+    <main class="shell">
+      <header class="topbar">
+        <div>
+          <h1 class="title">NameBattler</h1>
+          <p class="subtitle">遊ぶモードを選んでください。</p>
+        </div>
+        <div class="top-actions">
+          <button class="icon-button" data-action="help" aria-label="遊び方を開く" title="遊び方">?</button>
+          ${soundButton()}
+        </div>
+      </header>
+      <section class="mode-select">
+        <button class="mode-card" data-mode="solo">
+          <strong>1人用</strong>
+          <span>固定ステージを選び、敵を倒して成長する。</span>
+        </button>
+        <button class="mode-card" data-mode="duel">
+          <strong>2人用</strong>
+          <span>2つの名前から生まれたキャラクター同士で対戦する。</span>
+        </button>
+      </section>
+      ${helpModal()}
+    </main>
+  `;
+  bindCommon();
+  app.querySelectorAll("[data-mode]").forEach((button) => {
+    button.addEventListener("click", () => {
+      state.mode = button.dataset.mode;
+      state.screen = "setup";
+      state.preview = null;
+      state.previewTwo = null;
+      state.player = null;
+      state.second = null;
+      state.error = "";
+      render();
+    });
+  });
+}
+
+function renderSetup() {
   if (state.audioReady && state.audioOn) startMusic("menu");
   const nameOneValue = document.querySelector("#name-one")?.value || "";
   const nameTwoValue = document.querySelector("#name-two")?.value || "";
@@ -266,20 +391,17 @@ function renderMenu() {
       <header class="topbar">
         <div>
           <h1 class="title">NameBattler</h1>
-          <p class="subtitle">名前に眠る運命を呼び起こし、横視点の戦場でぶつけ合え。</p>
+          <p class="subtitle">${state.mode === "solo" ? "1人用：名前を入力して能力を呼び出します。" : "2人用：2人の名前を入力して能力を呼び出します。"}</p>
         </div>
         <div class="top-actions">
           <button class="icon-button" data-action="help" aria-label="遊び方を開く" title="遊び方">?</button>
           ${soundButton()}
+          <button data-action="back-mode">モード選択へ</button>
         </div>
       </header>
       <section class="menu">
         <div class="panel">
-          <h2>モード選択</h2>
-          <div class="mode-grid">
-            <button class="mode-button ${state.mode === "solo" ? "active" : ""}" data-mode="solo">1人用</button>
-            <button class="mode-button ${state.mode === "duel" ? "active" : ""}" data-mode="duel">2人用</button>
-          </div>
+          <h2>${state.mode === "solo" ? "1人用の名前入力" : "2人用の名前入力"}</h2>
             <div class="form-grid">
               <label class="field">
                 <span>${state.mode === "solo" ? "あなたの名前" : "プレイヤー1の名前"}</span>
@@ -315,20 +437,18 @@ function renderMenu() {
       ${helpModal()}
     </main>
   `;
-  bindMenu();
+  bindSetup();
 }
 
-function bindMenu() {
-  app.querySelectorAll("[data-mode]").forEach((button) => {
-    button.addEventListener("click", () => {
-      state.mode = button.dataset.mode;
-      state.preview = null;
-      state.previewTwo = null;
-      state.player = null;
-      state.second = null;
-      state.error = "";
-      render();
-    });
+function bindSetup() {
+  app.querySelector("[data-action='back-mode']").addEventListener("click", () => {
+    state.screen = "mode";
+    state.preview = null;
+    state.previewTwo = null;
+    state.player = null;
+    state.second = null;
+    state.error = "";
+    render();
   });
   bindCommon();
   app.querySelectorAll("#name-one, #name-two").forEach((input) => {
@@ -404,7 +524,7 @@ function helpModal() {
         </div>
         <div class="help-content">
           <h3>名前でキャラクターを作る</h3>
-          <p>名前を入力すると、職業、レベル、HP、MP、攻撃力、防御力、魔力、素早さ、運が決まります。同じ名前なら、いつでも同じ能力になります。</p>
+          <p>名前を入力すると、職業、レベル、HP、MP、攻撃力、防御力、魔力、魔法防御、技術、素早さ、運が決まります。同じ名前なら、いつでも同じ能力になります。</p>
           <h3>1人用</h3>
           <p>固定された敵を順番に倒してステージを進めます。開始前にステージを選べます。敵の強さはあなたのレベルに合わせて変わらないので、強い名前や成長した名前パターンが攻略の鍵になります。</p>
           <h3>2人用</h3>
@@ -412,7 +532,9 @@ function helpModal() {
           <h3>戦闘操作</h3>
           <p>マニュアル操作では、通常攻撃、職業スキル、防御、様子を見るを選べます。回復スキルは強力ですが消費MPが大きく、同じ戦闘で使うほど回復量が落ちます。オート操作に切り替えると、自動で行動を選びます。</p>
           <h3>スキルの種類</h3>
-          <p>攻撃技は攻撃力を中心にした物理寄りのダメージ、攻撃魔法は魔力を中心にしたダメージ、回復魔法はHP回復です。各キャラクターの能力欄と戦闘画面に、種類・消費MP・効果を表示しています。</p>
+          <p>魔法は魔力と魔法防御、特技は技術と攻撃力が重要です。職業とレベルによって覚える魔法・特技が変わり、低レベルでは使えないものもあります。各キャラクターの能力欄と戦闘画面に、種類・消費MP・効果を表示しています。</p>
+          <h3>職業の違い</h3>
+          <p>戦士や武闘家は特技型、魔法使いや賢者は魔法型、暗黒騎士は物理と魔法の混合型です。魔法職は通常攻撃が弱い代わりに、低レベルからMPなしの基礎魔法を使えるようにしています。</p>
           <h3>名前パターン</h3>
           <p>1人用の戦闘後に、元の名前の後ろへ短い記号を足した名前パターンが表示されます。別人の名前には変わりません。そのまま名前欄に入れると、そのレベルの強さとして1人用でも2人用でも使えます。</p>
           <h3>音について</h3>
@@ -424,15 +546,29 @@ function helpModal() {
 }
 
 function characterPreview(character) {
+  const magic = availableMagic(character);
+  const techniques = availableTechniques(character);
   return `
       <div class="preview-card">
       <div class="name-row"><span>${escapeHtml(character.name)}</span><span>レベル ${character.level}</span></div>
-      <div class="job">${character.job.name}</div>
+      <div class="job">${character.job.name} / ${character.job.role}</div>
+      <p class="small-note">${character.job.note}</p>
       ${character.patternUsed ? `<p class="pattern-note">記号つきの名前パターンから呼び出しました。</p>` : ""}
+      <p class="pattern-note">次のレベルまで：${expToNext(character.level) - character.exp} 経験値</p>
       <div class="skill-info">
-        <strong>${character.job.skill}</strong>
-        <span>${character.job.type} / 消費MP ${character.job.cost}</span>
-        <p>${character.job.effect}</p>
+        <strong>パラメーターの見方</strong>
+        <span>魔力・魔法防御・技術を追加</span>
+        <p>魔法は魔力で威力が伸び、相手の魔法防御で軽減されます。特技は技術と攻撃力で威力が伸びます。職業によって、魔法型・特技型・混合型に分かれます。</p>
+      </div>
+      <div class="skill-info">
+        <strong>覚えている魔法</strong>
+        <span>${magic.length ? magic.map((ability) => `${ability.name}（${ability.type} / 消費MP ${ability.cost}）`).join("、") : "なし"}</span>
+        <p>${magic.length ? magic.map((ability) => ability.effect).join(" / ") : "この職業またはレベルでは、まだ魔法を使えません。"}</p>
+      </div>
+      <div class="skill-info">
+        <strong>覚えている特技</strong>
+        <span>${techniques.length ? techniques.map((ability) => `${ability.name}（${ability.type}${ability.cost ? ` / 消費MP ${ability.cost}` : ""}）`).join("、") : "なし"}</span>
+        <p>${techniques.length ? techniques.map((ability) => ability.effect).join(" / ") : "この職業またはレベルでは、まだ特技を使えません。"}</p>
       </div>
       <div class="stat-grid">
         ${statItem("HP", character.stats.hp)}
@@ -440,6 +576,8 @@ function characterPreview(character) {
         ${statItem("攻撃力", character.stats.attack)}
         ${statItem("防御力", character.stats.defense)}
         ${statItem("魔力", character.stats.magic)}
+        ${statItem("魔法防御", character.stats.magicDefense)}
+        ${statItem("技術", character.stats.technique)}
         ${statItem("素早さ", character.stats.speed)}
         ${statItem("運", character.stats.luck)}
       </div>
@@ -486,6 +624,7 @@ function startBattle(player, enemy) {
   state.screen = "battle";
   state.auto = false;
   state.busy = false;
+  state.actionMenu = null;
   state.battle = {
     player,
     enemy,
@@ -502,6 +641,8 @@ function startBattle(player, enemy) {
 function renderBattle() {
   if (state.audioReady && state.audioOn) startMusic("battle");
   const battle = state.battle;
+  const magic = availableMagic(battle.player);
+  const techniques = availableTechniques(battle.player);
   app.innerHTML = `
     <main class="shell battle">
       <header class="topbar">
@@ -534,16 +675,18 @@ function renderBattle() {
           </div>
           <div class="command-grid">
             <button data-command="attack" ${commandDisabled()}>通常攻撃</button>
-            <button data-command="skill" title="${escapeAttr(battle.player.job.effect)}" ${commandDisabled()}>${battle.player.job.skill}<span>${battle.player.job.type} / 消費MP ${battle.player.job.cost}</span></button>
+            <button data-menu="magic" ${commandDisabled() || !magic.length ? "disabled" : ""}>魔法<span>${magic.length ? `${magic.length}個 使用可能` : "覚えていない"}</span></button>
+            <button data-menu="technique" ${commandDisabled() || !techniques.length ? "disabled" : ""}>特技<span>${techniques.length ? `${techniques.length}個 使用可能` : "覚えていない"}</span></button>
             <button data-command="defend" ${commandDisabled()}>防御</button>
             <button data-command="wait" ${commandDisabled()}>様子を見る</button>
           </div>
+          ${abilityMenuMarkup()}
         </div>
         <div class="log">${battle.log.map((line) => `<p>${escapeHtml(line)}</p>`).join("")}</div>
         <div class="panel skill-panel">
           <h2>スキル効果</h2>
-          <p><strong>${battle.player.job.skill}</strong>：${battle.player.job.type}。${battle.player.job.effect}</p>
-          <p><strong>${battle.enemy.job.skill}</strong>：${battle.enemy.job.type}。${battle.enemy.job.effect}</p>
+          <p><strong>${battle.player.displayName}</strong>：魔法 ${magic.length}個 / 特技 ${techniques.length}個</p>
+          <p><strong>${battle.enemy.displayName}</strong>：魔法 ${availableMagic(battle.enemy).length}個 / 特技 ${availableTechniques(battle.enemy).length}個</p>
         </div>
       </section>
       ${helpModal()}
@@ -591,7 +734,7 @@ function fighterMarkup(character, side) {
 function bindBattle() {
   bindCommon();
   app.querySelector("[data-action='back']").addEventListener("click", () => {
-    state.screen = "menu";
+    state.screen = "title";
     state.battle = null;
     state.result = null;
     render();
@@ -607,6 +750,34 @@ function bindBattle() {
   app.querySelectorAll("[data-command]").forEach((button) => {
     button.addEventListener("click", () => playerAction(button.dataset.command));
   });
+  app.querySelectorAll("[data-menu]").forEach((button) => {
+    button.addEventListener("click", () => {
+      state.actionMenu = state.actionMenu === button.dataset.menu ? null : button.dataset.menu;
+      render();
+    });
+  });
+  app.querySelectorAll("[data-ability]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const list = button.dataset.abilityType === "magic" ? availableMagic(state.battle.player) : availableTechniques(state.battle.player);
+      playerAction({ ability: list[Number(button.dataset.ability)] });
+    });
+  });
+}
+
+function abilityMenuMarkup() {
+  if (!state.actionMenu || !state.battle || state.auto || state.battle.turn !== "player") return "";
+  const list = state.actionMenu === "magic" ? availableMagic(state.battle.player) : availableTechniques(state.battle.player);
+  return `
+    <div class="ability-list">
+      ${list.map((ability, index) => `
+        <button data-ability-type="${state.actionMenu}" data-ability="${index}" ${state.busy || state.battle.player.currentMp < ability.cost ? "disabled" : ""}>
+          ${ability.name}
+          <span>${ability.type}${ability.cost ? ` / 消費MP ${ability.cost}` : ""}</span>
+          <small>${ability.effect}</small>
+        </button>
+      `).join("")}
+    </div>
+  `;
 }
 
 function logLine(text) {
@@ -626,9 +797,15 @@ function scheduleAuto() {
 }
 
 function pickAction(actor, target) {
-  if (actor.currentHp < actor.stats.hp * 0.28 && actor.job.kind === "heal" && actor.currentMp >= actor.job.cost && actor.healUses < 3) return "skill";
+  const magic = availableMagic(actor).filter((ability) => actor.currentMp >= ability.cost);
+  const techniques = availableTechniques(actor).filter((ability) => actor.currentMp >= ability.cost);
+  const heals = magic.filter((ability) => ability.kind === "heal");
+  const buffs = magic.filter((ability) => ability.kind === "buff");
+  const attacks = [...techniques, ...magic.filter((ability) => ability.kind === "magic")];
+  if (actor.currentHp < actor.stats.hp * 0.28 && heals.length && actor.healUses < 3) return { ability: heals[heals.length - 1] };
+  if (actor.currentHp < actor.stats.hp * 0.45 && buffs.length && Math.random() < 0.22) return { ability: buffs[buffs.length - 1] };
   if (target.currentHp < actor.stats.attack * 1.25) return "attack";
-  if (actor.job.kind !== "heal" && actor.currentMp >= actor.job.cost && Math.random() < 0.58) return "skill";
+  if (attacks.length && Math.random() < 0.62) return { ability: attacks[attacks.length - 1] };
   if (actor.currentHp < actor.stats.hp * 0.22 && Math.random() < 0.35) return "defend";
   return "attack";
 }
@@ -657,8 +834,9 @@ function enemyTurn() {
 
 function performAction(actor, target, command, done) {
   state.busy = true;
+  state.actionMenu = null;
   actor.defending = false;
-  const action = command === "wait" ? "defend" : command;
+  const action = command?.ability ? "ability" : command === "wait" ? "defend" : command;
   if (action === "defend") {
     actor.defending = true;
     logLine(`${actor.displayName}は身構えた。`);
@@ -668,34 +846,44 @@ function performAction(actor, target, command, done) {
     return;
   }
 
-  if (action === "skill" && actor.currentMp >= actor.job.cost) {
-    actor.currentMp -= actor.job.cost;
-    if (actor.job.kind === "heal") {
+  if (action === "ability" && actor.currentMp >= command.ability.cost) {
+    const ability = command.ability;
+    actor.currentMp -= ability.cost;
+    if (ability.kind === "heal") {
       actor.healUses += 1;
-      const baseHeal = actor.stats.magic * 0.72 + actor.stats.luck * 0.22 + actor.level * 1.1;
+      const baseHeal = (actor.stats.magic * 0.62 + actor.stats.magicDefense * 0.28 + actor.stats.luck * 0.16 + actor.level) * ability.power;
       const fatigue = Math.pow(0.68, actor.healUses - 1);
       const cap = actor.stats.hp * 0.28;
       const amount = Math.max(8, Math.round(Math.min(baseHeal * fatigue, cap)));
       actor.currentHp = Math.min(actor.stats.hp, actor.currentHp + amount);
-      logLine(`${actor.displayName}の${actor.job.skill}。聖なる光が傷を包み、HPが${amount}回復した。`);
+      logLine(`${actor.displayName}の${ability.name}。聖なる光が傷を包み、HPが${amount}回復した。`);
       playTone("heal");
       showEffect(actor === state.battle.player ? "player" : "enemy", "heal");
       setTimeout(() => finishAction(done), 760);
       render();
       return;
     }
-    const damage = calcDamage(actor, target, "skill");
+    if (ability.kind === "buff") {
+      actor.defending = true;
+      logLine(`${actor.displayName}の${ability.name}。魔力を練り上げ、次の攻撃に備えた。`);
+      playTone("guard");
+      showEffect(actor === state.battle.player ? "player" : "enemy", "heal");
+      setTimeout(() => finishAction(done), 620);
+      render();
+      return;
+    }
+    const damage = calcDamage(actor, target, ability.kind, ability);
     target.currentHp -= damage;
-    logLine(`${actor.displayName}の${actor.job.skill}。禁じられた力が${target.displayName}を貫き、${damage}のダメージ。`);
-    playTone("magic");
-    showEffect(target === state.battle.player ? "player" : "enemy", "spell");
+    logLine(`${actor.displayName}の${ability.name}。${target.displayName}に${damage}のダメージ。`);
+    playTone(ability.kind === "magic" ? "magic" : "attack");
+    showEffect(target === state.battle.player ? "player" : "enemy", ability.kind === "magic" ? "spell" : "slash");
     flashSprite(target, "hit");
     setTimeout(() => finishAction(done), 840);
     render();
     return;
   }
 
-  if (action === "skill") {
+  if (action === "ability") {
     logLine(`${actor.displayName}は力を解き放とうとしたが、MPが足りない。`);
   }
   const damage = calcDamage(actor, target, "attack");
@@ -714,12 +902,18 @@ function finishAction(done) {
   done();
 }
 
-function calcDamage(actor, target, type) {
+function calcDamage(actor, target, type, ability = null) {
   const random = rng(hashText(`${actor.id}:${target.id}:${Date.now()}:${Math.random()}`));
-  const attackSide = type === "skill"
-    ? actor.stats.magic * 1.45 + actor.stats.attack * 0.42
+  const power = ability?.power || 1;
+  const attackSide = type === "magic"
+    ? (actor.stats.magic * 1.35 + actor.stats.luck * 0.16) * power
+    : type === "technique"
+      ? (actor.stats.technique * 1.12 + actor.stats.attack * 0.72 + actor.stats.speed * 0.18) * power
     : actor.stats.attack * 1.25 + actor.stats.luck * 0.24;
-  const defenseSide = target.stats.defense * (target.defending ? 0.92 : 0.58) + target.stats.luck * 0.12;
+  const guardRate = target.defending ? 0.92 : 0.58;
+  const defenseSide = type === "magic"
+    ? target.stats.magicDefense * guardRate + target.stats.luck * 0.12
+    : target.stats.defense * guardRate + target.stats.luck * 0.12;
   const critical = random() < clamp(actor.stats.luck / (target.stats.luck * 9 + 180), 0.04, 0.28);
   const variance = 0.86 + random() * 0.28;
   const raw = Math.max(1, (attackSide - defenseSide) * variance);
@@ -750,6 +944,8 @@ function finishBattle(playerWon) {
           `${battle.enemy.displayName}を倒した。`,
           `獲得経験値：${outcome.gained}`,
           `上がったレベル：${outcome.levels}`,
+          `次のレベルまで：${expToNext(state.player.level) - state.player.exp} 経験値`,
+          outcome.learned.length ? `新しく覚えた技：${outcome.learned.join("、")}` : "新しく覚えた魔法・特技：なし",
           `この強さの${state.player.name}は、下の名前パターンで呼び出せます。`
         ],
         code: makeNamePattern(state.player),
@@ -763,6 +959,7 @@ function finishBattle(playerWon) {
         title: "敗北",
         lines: [
           `${battle.enemy.displayName}に倒された。`,
+          `次のレベルまで：${expToNext(state.player.level) - state.player.exp} 経験値`,
           "傷は癒えた。今の強さは、元の名前に記号を足した名前パターンで残せる。"
         ],
         code: makeNamePattern(state.player),
@@ -775,7 +972,7 @@ function finishBattle(playerWon) {
       title: playerWon ? `${battle.player.displayName}の勝利` : `${battle.enemy.displayName}の勝利`,
       lines: ["名前に宿る運命が決着を告げた。"],
       code: null,
-      next: "menu"
+      next: "duelRetry"
     };
   }
   state.screen = "result";
@@ -811,7 +1008,8 @@ function renderResult() {
         <div class="start-row">
           ${result.next === "next" ? `<button class="primary" data-action="next">次のステージへ</button>` : ""}
           ${result.next === "retry" ? `<button class="primary" data-action="retry">再戦する</button>` : ""}
-          <button data-action="menu">最初に戻る</button>
+          ${result.next === "duelRetry" ? `<button class="primary" data-action="duel-retry">再戦する</button>` : ""}
+          <button data-action="menu">タイトルへ戻る</button>
         </div>
       </section>
       ${helpModal()}
@@ -819,8 +1017,9 @@ function renderResult() {
   `;
   bindCommon();
   app.querySelector("[data-action='menu']").addEventListener("click", () => {
-    state.screen = "menu";
+    state.screen = "title";
     state.result = null;
+    state.battle = null;
     render();
   });
   const next = app.querySelector("[data-action='next']");
@@ -833,6 +1032,12 @@ function renderResult() {
   if (retry) {
     retry.addEventListener("click", () => {
       startBattle(cloneForBattle(state.player), cloneForBattle(STAGES[state.stageIndex]));
+    });
+  }
+  const duelRetry = app.querySelector("[data-action='duel-retry']");
+  if (duelRetry) {
+    duelRetry.addEventListener("click", () => {
+      startBattle(cloneForBattle(state.player), cloneForBattle(state.second));
     });
   }
   const copy = app.querySelector("[data-action='copy-code']");

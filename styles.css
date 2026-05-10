@@ -104,6 +104,96 @@ select:focus {
   font-size: 0.95rem;
 }
 
+.title-screen {
+  position: relative;
+  place-items: center;
+  overflow: hidden;
+}
+
+.title-orbit {
+  position: absolute;
+  width: min(720px, 92vw);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 1px solid rgba(248, 214, 126, 0.18);
+  box-shadow: inset 0 0 80px rgba(114, 214, 255, 0.12), 0 0 90px rgba(248, 214, 126, 0.12);
+  animation: titleSpin 18s linear infinite;
+}
+
+.title-orbit::before,
+.title-orbit::after {
+  content: "";
+  position: absolute;
+  inset: 12%;
+  border: 1px dashed rgba(184, 140, 255, 0.22);
+  border-radius: inherit;
+}
+
+.title-orbit::after {
+  inset: 27%;
+  border-color: rgba(114, 214, 255, 0.22);
+  transform: rotate(28deg);
+}
+
+.title-hero {
+  position: relative;
+  z-index: 1;
+  width: min(760px, 100%);
+  display: grid;
+  justify-items: center;
+  gap: 18px;
+  text-align: center;
+  padding: 34px 20px;
+}
+
+.title-kicker {
+  margin: 0;
+  color: var(--gold);
+  font-weight: 800;
+}
+
+.title.mega {
+  font-size: clamp(3.5rem, 12vw, 8rem);
+  text-shadow: 0 0 18px rgba(248, 214, 126, 0.8), 0 0 60px rgba(114, 214, 255, 0.38);
+}
+
+.title-actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.start-button {
+  min-width: min(280px, 72vw);
+  min-height: 64px;
+  font-size: 1.25rem;
+  letter-spacing: 0;
+}
+
+.mode-select {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.mode-card {
+  min-height: 220px;
+  display: grid;
+  place-content: center;
+  gap: 10px;
+  text-align: center;
+}
+
+.mode-card strong {
+  font-size: 1.7rem;
+}
+
+.mode-card span {
+  color: var(--muted);
+}
+
 .sound-button {
   min-width: 8rem;
 }
@@ -622,6 +712,32 @@ select:focus {
   font-weight: 700;
 }
 
+.ability-list {
+  display: grid;
+  gap: 8px;
+}
+
+.ability-list button {
+  text-align: left;
+}
+
+.ability-list span,
+.ability-list small {
+  display: block;
+  margin-top: 4px;
+}
+
+.ability-list span {
+  color: var(--gold);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.ability-list small {
+  color: #d8cfbd;
+  line-height: 1.45;
+}
+
 .toggle-row {
   display: flex;
   gap: 8px;
@@ -744,6 +860,11 @@ select:focus {
   50% { transform: scale(1.08); opacity: 0.34; }
 }
 
+@keyframes titleSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 @keyframes enter {
   from { transform: translateY(34px) scale(0.88); opacity: 0; }
   to { transform: translateY(0) scale(1); opacity: 1; }
@@ -803,6 +924,7 @@ select:focus {
   }
 
   .menu,
+  .mode-select,
   .hud {
     grid-template-columns: 1fr;
   }
