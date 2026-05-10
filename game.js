@@ -198,26 +198,20 @@ function createCharacter(inputName, options = {}) {
 }
 
 function buildStats(character, spike) {
-  const random = rng(character.seed ^ (character.level * 2654435761));
   const j = character.job;
   const level = character.level;
-  const nature = character.baseNature;
-  const calc = (base, growth, jobRate, key) => {
-    const focusBoost = character.focus === key ? spike : 1;
-    const wobble = 0.86 + random() * 0.32;
-    return Math.max(1, Math.round((base + level * growth) * jobRate * nature * focusBoost * wobble));
-  };
+  const calc = (base, growth, jobRate) => Math.max(1, Math.round((base + level * growth) * jobRate));
   return {
-    hp: calc(42, 8.3, j.hp, "hp"),
-    mp: calc(14, 3.7, j.mp, "mp"),
-    tp: calc(12, 3.0, j.tp, "tp"),
-    attack: calc(9, 2.45, j.attack, "attack"),
-    defense: calc(8, 2.18, j.defense, "defense"),
-    magic: calc(8, 2.35, j.magic, "magic"),
-    magicDefense: calc(7, 2.1, j.magicDefense, "magicDefense"),
-    technique: calc(7, 2.25, j.technique, "technique"),
-    speed: calc(7, 2.05, j.speed, "speed"),
-    luck: calc(5, 1.8, j.luck, "luck")
+    hp: calc(42, 8.3, j.hp),
+    mp: calc(14, 3.7, j.mp),
+    tp: calc(12, 3.0, j.tp),
+    attack: calc(9, 2.45, j.attack),
+    defense: calc(8, 2.18, j.defense),
+    magic: calc(8, 2.35, j.magic),
+    magicDefense: calc(7, 2.1, j.magicDefense),
+    technique: calc(7, 2.25, j.technique),
+    speed: calc(7, 2.05, j.speed),
+    luck: calc(5, 1.8, j.luck)
   };
 }
 
@@ -225,7 +219,7 @@ function makeEnemy(name, jobName, level, power) {
   const job = JOBS.find((item) => item.name === jobName) || JOBS[0];
   const seed = hashText(`${name}:${level}`);
   const random = rng(seed);
-  const factor = 0.78 + power / 520;
+  const factor = 1;
   const enemy = {
     id: `enemy-${seed}`,
     name,
@@ -241,15 +235,15 @@ function makeEnemy(name, jobName, level, power) {
     focus: "attack"
   };
   enemy.stats = {
-    hp: Math.round((58 + level * 8.9) * factor * job.hp),
-    mp: Math.round((16 + level * 3.8) * factor * job.mp),
-    tp: Math.round((15 + level * 3.2) * factor * job.tp),
-    attack: Math.round((10 + level * 2.5) * factor * job.attack),
-    defense: Math.round((9 + level * 2.22) * factor * job.defense),
-    magic: Math.round((9 + level * 2.38) * factor * job.magic),
-    magicDefense: Math.round((8 + level * 2.08) * factor * job.magicDefense),
-    technique: Math.round((8 + level * 2.24) * factor * job.technique),
-    speed: Math.round((7 + level * 2.08) * factor * job.speed),
+    hp: Math.round((42 + level * 8.3) * factor * job.hp),
+    mp: Math.round((14 + level * 3.7) * factor * job.mp),
+    tp: Math.round((12 + level * 3.0) * factor * job.tp),
+    attack: Math.round((9 + level * 2.45) * factor * job.attack),
+    defense: Math.round((8 + level * 2.18) * factor * job.defense),
+    magic: Math.round((8 + level * 2.35) * factor * job.magic),
+    magicDefense: Math.round((7 + level * 2.1) * factor * job.magicDefense),
+    technique: Math.round((7 + level * 2.25) * factor * job.technique),
+    speed: Math.round((7 + level * 2.05) * factor * job.speed),
     luck: Math.round((5 + level * 1.8) * factor * job.luck)
   };
   enemy.currentHp = enemy.stats.hp;
