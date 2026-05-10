@@ -304,9 +304,13 @@ function awardExp(player, enemy, stageIndex) {
   const enemyPower = enemy.stats.hp + enemy.stats.attack * 8 + enemy.stats.magic * 7 + enemy.stats.technique * 6 + enemy.stats.defense * 5 + enemy.stats.magicDefense * 4;
   const before = player.level;
   const levelGap = Math.max(0, enemy.level - before);
-  const uphillBonus = levelGap * 120 + levelGap * levelGap * 24;
+  const levelDown = Math.max(0, before - enemy.level);
+  const uphillBonus = levelGap * 95 + levelGap * levelGap * 10;
   const stageBonus = stageIndex * 52;
-  const gained = Math.round(150 + enemy.level * 55 + enemyPower / 4.2 + stageBonus + uphillBonus);
+  const repeatPenalty = Math.max(0.18, 1 - levelDown * 0.075);
+  const rawGained = Math.round((150 + enemy.level * 55 + enemyPower / 4.2 + stageBonus + uphillBonus) * repeatPenalty);
+  const capRate = before < 8 ? 0.92 : before < 20 ? 0.68 : before < 40 ? 0.48 : before < 70 ? 0.34 : 0.24;
+  const gained = Math.max(24, Math.round(Math.min(rawGained, expToNext(before) * capRate)));
   const learned = [];
   player.exp += gained;
   while (player.level < 999 && player.exp >= expToNext(player.level)) {
