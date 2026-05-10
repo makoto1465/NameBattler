@@ -30,8 +30,11 @@ const JOBS = [
 const MAGIC_BOOK = [
   { name: "魔力弾", minLevel: 1, jobs: ["魔法使い", "僧侶", "賢者", "暗黒騎士"], cost: 0, kind: "magic", power: 1.12, type: "攻撃魔法", effect: "MPなしで撃てる基礎魔法。魔法職の通常攻撃代わりになる" },
   { name: "火炎弾", minLevel: 5, jobs: ["魔法使い", "賢者", "暗黒騎士"], cost: 18, kind: "magic", power: 1.0, type: "攻撃魔法", effect: "魔力で火球を放つ基本魔法" },
-  { name: "魔力集中", minLevel: 10, jobs: ["魔法使い", "僧侶", "賢者"], cost: 16, kind: "buff", power: 1.0, type: "補助魔法", effect: "身構えて次の被ダメージを抑える補助魔法" },
+  { name: "魔力集中", minLevel: 10, jobs: ["魔法使い", "僧侶", "賢者"], cost: 16, kind: "buff", stat: "magic", amount: 0.24, duration: 3, type: "補助魔法", effect: "自分の魔力をしばらく上げる補助魔法" },
+  { name: "霧縛り", minLevel: 14, jobs: ["魔法使い", "賢者"], cost: 22, kind: "debuff", stat: "speed", amount: -0.24, duration: 3, type: "状態異常魔法", effect: "相手の素早さを下げ、先手の有利を崩す" },
   { name: "癒しの光", minLevel: 8, jobs: ["僧侶", "賢者"], cost: 34, kind: "heal", power: 0.82, type: "回復魔法", effect: "HPを少し回復する。同じ戦闘で使うほど効果低下" },
+  { name: "守護結界", minLevel: 16, jobs: ["魔法使い", "僧侶", "賢者"], cost: 24, kind: "buff", stat: "magicDefense", amount: 0.28, duration: 3, type: "補助魔法", effect: "自分の魔法防御を上げ、魔法ダメージを抑える" },
+  { name: "衰弱の呪い", minLevel: 20, jobs: ["魔法使い", "暗黒騎士", "賢者"], cost: 28, kind: "debuff", stat: "attack", amount: -0.22, duration: 3, type: "状態異常魔法", effect: "相手の攻撃力を下げ、物理職の勢いを削ぐ" },
   { name: "黒雷", minLevel: 18, jobs: ["魔法使い", "賢者", "暗黒騎士"], cost: 38, kind: "magic", power: 1.34, type: "攻撃魔法", effect: "魔力を中心にした雷撃ダメージ" },
   { name: "聖光再生", minLevel: 24, jobs: ["僧侶", "賢者"], cost: 52, kind: "heal", power: 1.12, type: "回復魔法", effect: "HPを大きく回復するが消費MPが重い" },
   { name: "冥王炎", minLevel: 34, jobs: ["暗黒騎士", "魔法使い"], cost: 58, kind: "magic", power: 1.62, type: "攻撃魔法", effect: "魔力と攻撃力を混ぜた闇炎ダメージ" },
@@ -42,7 +45,10 @@ const TECHNIQUE_BOOK = [
   { name: "けん制", minLevel: 1, jobs: ["盗賊", "忍者", "魔法使い", "僧侶", "賢者"], cost: 0, kind: "technique", power: 0.72, type: "特技", effect: "技術で相手の隙を突く軽い特技" },
   { name: "強打", minLevel: 1, jobs: ["戦士", "武闘家", "暗黒騎士"], cost: 0, kind: "technique", power: 0.92, type: "特技", effect: "技術と攻撃力で打ち込む基本特技" },
   { name: "影縫い", minLevel: 7, jobs: ["忍者", "盗賊"], cost: 14, kind: "technique", power: 1.08, type: "特技", effect: "技術と素早さを乗せた一撃" },
+  { name: "気合ため", minLevel: 9, jobs: ["戦士", "武闘家", "暗黒騎士"], cost: 16, kind: "buff", stat: "attack", amount: 0.22, duration: 3, type: "補助特技", effect: "自分の攻撃力をしばらく上げる" },
+  { name: "足払い", minLevel: 12, jobs: ["武闘家", "忍者", "盗賊"], cost: 18, kind: "debuff", stat: "speed", amount: -0.2, duration: 3, type: "妨害特技", effect: "相手の素早さを下げ、行動順の優位を崩す" },
   { name: "竜牙連撃", minLevel: 15, jobs: ["武闘家", "忍者"], cost: 24, kind: "technique", power: 1.34, type: "特技", effect: "連続攻撃を叩き込む中級特技" },
+  { name: "鉄身", minLevel: 18, jobs: ["戦士", "武闘家"], cost: 22, kind: "buff", stat: "defense", amount: 0.28, duration: 3, type: "補助特技", effect: "自分の防御力を上げ、物理ダメージを抑える" },
   { name: "覇王斬", minLevel: 22, jobs: ["戦士", "暗黒騎士"], cost: 34, kind: "technique", power: 1.56, type: "特技", effect: "攻撃力と技術を合わせた重い斬撃" },
   { name: "運命強奪", minLevel: 30, jobs: ["盗賊"], cost: 32, kind: "technique", power: 1.42, type: "特技", effect: "運の高さも乗る奇襲ダメージ" },
   { name: "無双乱舞", minLevel: 45, jobs: ["武闘家", "忍者"], cost: 52, kind: "technique", power: 1.86, type: "特技", effect: "技術が高いほど伸びる上級特技" }
@@ -276,6 +282,7 @@ function cloneForBattle(character) {
     currentMp: character.stats.mp,
     currentTp: character.stats.tp,
     defending: false,
+    effects: {},
     healUses: 0
   };
 }
@@ -763,6 +770,7 @@ function fighterMarkup(character, side) {
         <div class="bar-text"><span>MP</span><span>${Math.max(0, character.currentMp)} / ${character.stats.mp}</span></div>
         <div class="bar"><div class="fill tp-fill" style="width:${tpRate}%"></div></div>
         <div class="bar-text"><span>TP</span><span>${Math.max(0, character.currentTp)} / ${character.stats.tp}</span></div>
+        ${effectBadges(character)}
       </div>
       <div class="sprite-wrap">
         <div class="shadow"></div>
@@ -779,6 +787,12 @@ function fighterMarkup(character, side) {
       </div>
     </div>
   `;
+}
+
+function effectBadges(character) {
+  const entries = Object.entries(character.effects || {});
+  if (!entries.length) return "";
+  return `<div class="effect-badges">${entries.map(([key, effect]) => `<span class="${effect.amount > 0 ? "up" : "down"}">${STAT_LABELS[key]}${effect.amount > 0 ? "↑" : "↓"}</span>`).join("")}</div>`;
 }
 
 function bindBattle() {
@@ -876,9 +890,13 @@ function pickAction(actor, target) {
   const techniques = availableTechniques(actor).filter((ability) => actor.currentTp >= ability.cost);
   const heals = magic.filter((ability) => ability.kind === "heal");
   const buffs = magic.filter((ability) => ability.kind === "buff");
-  const attacks = [...techniques, ...magic.filter((ability) => ability.kind === "magic")];
+  const debuffs = [...techniques, ...magic].filter((ability) => ability.kind === "debuff");
+  const techBuffs = techniques.filter((ability) => ability.kind === "buff");
+  const attacks = [...techniques.filter((ability) => ability.kind === "technique"), ...magic.filter((ability) => ability.kind === "magic")];
   if (actor.currentHp < actor.stats.hp * 0.28 && heals.length && actor.healUses < 3) return { ability: heals[heals.length - 1] };
-  if (actor.currentHp < actor.stats.hp * 0.45 && buffs.length && Math.random() < 0.22) return { ability: buffs[buffs.length - 1] };
+  if (actor.currentHp < actor.stats.hp * 0.55 && techBuffs.length && Math.random() < 0.24) return { ability: techBuffs[techBuffs.length - 1] };
+  if (actor.currentHp < actor.stats.hp * 0.45 && buffs.length && Math.random() < 0.24) return { ability: buffs[buffs.length - 1] };
+  if (debuffs.length && Math.random() < 0.22) return { ability: debuffs[debuffs.length - 1] };
   if (target.currentHp < actor.stats.attack * 1.25) return "attack";
   if (attacks.length && Math.random() < 0.62) return { ability: attacks[attacks.length - 1] };
   if (actor.currentHp < actor.stats.hp * 0.22 && Math.random() < 0.35) return "defend";
@@ -943,17 +961,30 @@ function performAction(actor, target, command, done) {
       return;
     }
     if (ability.kind === "buff") {
-      actor.defending = true;
-      logLine(`${actor.displayName}の${ability.name}。魔力を練り上げ、次の攻撃に備えた。`);
+      applyStatEffect(actor, ability);
+      logLine(`${actor.displayName}の${ability.name}。${STAT_LABELS[ability.stat]}がしばらく上がった。`);
       playTone("guard");
       showEffect(actor === state.battle.player ? "player" : "enemy", "heal");
       setTimeout(() => finishAction(done), 620);
       render();
       return;
     }
-    const damage = calcDamage(actor, target, ability.kind, ability);
-    target.currentHp -= damage;
-    logLine(`${actor.displayName}の${ability.name}。${target.displayName}に${damage}のダメージ。`);
+    if (ability.kind === "debuff") {
+      applyStatEffect(target, ability);
+      logLine(`${actor.displayName}の${ability.name}。${target.displayName}の${STAT_LABELS[ability.stat]}がしばらく下がった。`);
+      playTone("magic");
+      showEffect(target === state.battle.player ? "player" : "enemy", "spell");
+      setTimeout(() => finishAction(done), 700);
+      render();
+      return;
+    }
+    const result = calcDamage(actor, target, ability.kind, ability);
+    if (result.missed) {
+      logLine(`${actor.displayName}の${ability.name}。しかし${target.displayName}はかわした。`);
+    } else {
+      target.currentHp -= result.damage;
+      logLine(`${actor.displayName}の${ability.name}。${result.critical ? "会心の一撃。 " : ""}${target.displayName}に${result.damage}のダメージ。`);
+    }
     playTone(ability.kind === "magic" ? "magic" : "attack");
     showEffect(target === state.battle.player ? "player" : "enemy", ability.kind === "magic" ? "spell" : "slash");
     flashSprite(target, "hit");
@@ -966,9 +997,13 @@ function performAction(actor, target, command, done) {
     const resource = command.ability.kind === "technique" ? "TP" : "MP";
     logLine(`${actor.displayName}は力を解き放とうとしたが、${resource}が足りない。`);
   }
-  const damage = calcDamage(actor, target, "attack");
-  target.currentHp -= damage;
-  logLine(`${actor.displayName}の通常攻撃。刃が走り、${target.displayName}に${damage}のダメージ。`);
+  const result = calcDamage(actor, target, "attack");
+  if (result.missed) {
+    logLine(`${actor.displayName}の通常攻撃。しかし${target.displayName}は身をひるがえしてかわした。`);
+  } else {
+    target.currentHp -= result.damage;
+    logLine(`${actor.displayName}の通常攻撃。${result.critical ? "会心の一撃。 " : "刃が走り、"}${target.displayName}に${result.damage}のダメージ。`);
+  }
   playTone("attack");
   flashSprite(actor, "attack");
   flashSprite(target, "hit");
@@ -978,33 +1013,79 @@ function performAction(actor, target, command, done) {
 }
 
 function finishAction(done) {
+  const battle = state.battle;
+  if (battle) {
+    const actor = battle.turn === "player" ? battle.player : battle.enemy;
+    tickEffects(actor);
+  }
   state.busy = false;
   done();
 }
 
+function applyStatEffect(character, ability) {
+  character.effects ||= {};
+  const current = character.effects[ability.stat];
+  if (!current || Math.abs(ability.amount) >= Math.abs(current.amount)) {
+    character.effects[ability.stat] = { amount: ability.amount, turns: ability.duration || 3, fresh: true };
+  } else {
+    current.turns = Math.max(current.turns, ability.duration || 3);
+    current.fresh = true;
+  }
+}
+
+function tickEffects(character) {
+  if (!character.effects) return;
+  Object.keys(character.effects).forEach((key) => {
+    const effect = character.effects[key];
+    if (effect.fresh) {
+      effect.fresh = false;
+      return;
+    }
+    effect.turns -= 1;
+    if (effect.turns <= 0) delete character.effects[key];
+  });
+}
+
+function effectiveStat(character, key) {
+  const effect = character.effects?.[key];
+  const rate = effect ? 1 + effect.amount : 1;
+  return Math.max(1, character.stats[key] * rate);
+}
+
 function calcDamage(actor, target, type, ability = null) {
   const random = rng(hashText(`${actor.id}:${target.id}:${Date.now()}:${Math.random()}`));
+  const missRate = hitMissRate(actor, target, type);
+  if (random() < missRate) return { damage: 0, missed: true, critical: false };
   const power = ability?.power || 1;
   const attackSide = type === "magic"
-    ? (actor.stats.magic * 1.05 + actor.stats.luck * 0.12) * power
+    ? (effectiveStat(actor, "magic") * 1.05 + effectiveStat(actor, "luck") * 0.12) * power
     : type === "technique"
-      ? (actor.stats.technique * 0.88 + actor.stats.attack * 0.5 + actor.stats.speed * 0.1) * power
-    : actor.stats.attack * 0.9 + actor.stats.luck * 0.16;
+      ? (effectiveStat(actor, "technique") * 0.88 + effectiveStat(actor, "attack") * 0.5 + effectiveStat(actor, "speed") * 0.1) * power
+    : effectiveStat(actor, "attack") * 0.9 + effectiveStat(actor, "luck") * 0.16;
   const guardRate = target.defending ? 1.28 : 0.78;
   const defenseSide = type === "magic"
-    ? target.stats.magicDefense * guardRate + target.stats.luck * 0.16
-    : target.stats.defense * guardRate + target.stats.luck * 0.16;
-  const critical = random() < clamp(actor.stats.luck / (target.stats.luck * 12 + 260), 0.03, 0.18);
+    ? effectiveStat(target, "magicDefense") * guardRate + effectiveStat(target, "luck") * 0.16
+    : effectiveStat(target, "defense") * guardRate + effectiveStat(target, "luck") * 0.16;
+  const critical = random() < clamp(effectiveStat(actor, "luck") / (effectiveStat(target, "luck") * 12 + 260), 0.03, 0.18);
   const variance = 0.9 + random() * 0.2;
   const raw = Math.max(1, (attackSide - defenseSide) * variance);
   const capped = Math.min(raw * (critical ? 1.45 : 1), damageCap(target, type, Boolean(ability), critical));
-  return Math.max(1, Math.round(capped));
+  return { damage: Math.max(1, Math.round(capped)), missed: false, critical };
 }
 
 function damageCap(target, type, isAbility, critical) {
   const baseRate = type === "attack" ? 0.3 : isAbility ? 0.42 : 0.34;
   const criticalBonus = critical ? 0.08 : 0;
   return Math.max(12, target.stats.hp * (baseRate + criticalBonus));
+}
+
+function hitMissRate(actor, target, type) {
+  const speedDiff = effectiveStat(target, "speed") - effectiveStat(actor, "speed");
+  const luckDiff = effectiveStat(target, "luck") - effectiveStat(actor, "luck");
+  const base = type === "magic" ? 0.025 : type === "technique" ? 0.045 : 0.06;
+  const rate = base + speedDiff * 0.0022 + luckDiff * 0.0012;
+  const max = type === "magic" ? 0.14 : type === "technique" ? 0.2 : 0.24;
+  return clamp(rate, 0.02, max);
 }
 
 function checkEnd() {
