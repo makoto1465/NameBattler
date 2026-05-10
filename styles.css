@@ -907,6 +907,71 @@ select:focus {
   font-weight: 800;
 }
 
+.level-up-details {
+  position: relative;
+  z-index: 1;
+  width: min(720px, 100%);
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 12px;
+  margin-top: 12px;
+  text-align: left;
+}
+
+.level-stat-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.level-stat-row {
+  display: grid;
+  grid-template-columns: minmax(4.2rem, 1fr) auto auto;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid rgba(248, 214, 126, 0.18);
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.24);
+  padding: 7px 8px;
+}
+
+.level-stat-row span {
+  color: #e8dfc9;
+  font-size: 0.82rem;
+}
+
+.level-stat-row strong {
+  color: #fff9e6;
+  font-size: 0.84rem;
+}
+
+.level-stat-row em {
+  min-width: 2.6rem;
+  color: var(--green);
+  font-style: normal;
+  font-weight: 900;
+  text-align: right;
+}
+
+.learned-list {
+  display: grid;
+  gap: 6px;
+  align-content: start;
+  border: 1px solid rgba(142, 255, 174, 0.22);
+  border-radius: 6px;
+  background: rgba(6, 24, 18, 0.34);
+  padding: 10px;
+}
+
+.learned-list strong {
+  color: var(--green);
+}
+
+.learned-list span {
+  color: #f6ecd2;
+  line-height: 1.5;
+}
+
 .code-box {
   overflow-wrap: anywhere;
   border: 1px solid rgba(248, 214, 126, 0.38);
@@ -1140,6 +1205,11 @@ select:focus {
   .command-grid,
   .mode-grid,
   .stat-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .level-up-details,
+  .level-stat-list {
     grid-template-columns: 1fr;
   }
 }

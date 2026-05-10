@@ -3,6 +3,19 @@
 const app = document.querySelector("#app");
 
 const SYMBOLS = ["◆", "◇", "●", "○", "★", "☆", "▲", "△", "■", "□", "▼", "▽", "✦", "✧", "※", "◎"];
+const STAT_LABELS = {
+  hp: "HP",
+  mp: "MP",
+  tp: "TP",
+  attack: "攻撃力",
+  defense: "防御力",
+  magic: "魔力",
+  magicDefense: "魔法防御",
+  technique: "技術",
+  speed: "素早さ",
+  luck: "運"
+};
+
 const JOBS = [
   { name: "戦士", role: "物理前衛", note: "攻撃力と防御力が高く、TPを使う特技で押す。魔法は苦手。", hp: 1.22, mp: 0.62, tp: 1.12, attack: 1.28, defense: 1.18, magic: 0.62, magicDefense: 0.86, technique: 1.05, speed: 0.88, luck: 0.9 },
   { name: "魔法使い", role: "攻撃魔法", note: "通常攻撃は弱いが、低レベルからMPなしの魔法を使える。魔力で戦う。", hp: 0.82, mp: 1.35, tp: 0.62, attack: 0.72, defense: 0.78, magic: 1.42, magicDefense: 1.24, technique: 0.76, speed: 1.02, luck: 1.0 },
@@ -283,7 +296,7 @@ function learnedAbilitiesAtLevel(character, level) {
   const jobName = character.job.name;
   return [...MAGIC_BOOK, ...TECHNIQUE_BOOK]
     .filter((ability) => ability.minLevel === level && ability.jobs.includes(jobName))
-    .map((ability) => ability.name);
+    .map((ability) => ({ name: ability.name, type: ability.type, kind: ability.kind }));
 }
 
 function fullHeal(character) {
@@ -308,6 +321,7 @@ function awardExp(player, enemy, stageIndex) {
   const capRate = before < 8 ? 0.92 : before < 20 ? 0.68 : before < 40 ? 0.48 : before < 70 ? 0.34 : 0.24;
   const gained = Math.max(24, Math.round(Math.min(rawGained, expToNext(before) * capRate)));
   const learned = [];
+  const beforeStats = { ...player.stats };
   player.exp += gained;
   while (player.level < 999 && player.exp >= expToNext(player.level)) {
     player.exp -= expToNext(player.level);
@@ -316,7 +330,7 @@ function awardExp(player, enemy, stageIndex) {
     player.stats = buildStats(player, player.spike || 1);
   }
   fullHeal(player);
-  return { gained, levels: player.level - before, beforeLevel: before, afterLevel: player.level, learned };
+  return { gained, levels: player.level - before, beforeLevel: before, afterLevel: player.level, beforeStats, afterStats: { ...player.stats }, learned };
 }
 
 function render() {
@@ -1011,7 +1025,6 @@ function finishBattle(playerWon) {
           `${battle.enemy.displayName}を倒した。`,
           `獲得経験値：${outcome.gained}`,
           `次のレベルまで：${expToNext(state.player.level) - state.player.exp} 経験値`,
-          outcome.learned.length ? `新しく覚えた技：${outcome.learned.join("、")}` : "新しく覚えた魔法・特技：なし",
           `この強さの${state.player.name}は、下の名前パターンで呼び出せます。`
         ],
         code: makeNamePattern(state.player),
@@ -1122,12 +1135,36 @@ function renderResult() {
 }
 
 function levelUpMarkup(levelUp) {
+  const magic = levelUp.learned.filter((ability) => ability.kind === "magic" || ability.kind === "heal" || ability.kind === "buff");
+  const techniques = levelUp.learned.filter((ability) => ability.kind === "technique");
   return `
     <div class="level-up-card">
       <div class="level-up-aura"></div>
       <div class="level-up-label">レベルアップ</div>
       <div class="level-up-main">+${levelUp.levels}</div>
       <div class="level-up-sub">レベル ${levelUp.beforeLevel} → ${levelUp.afterLevel}</div>
+      <div class="level-up-details">
+        <div class="level-stat-list">
+          ${Object.entries(STAT_LABELS).map(([key, label]) => levelStatRow(label, levelUp.beforeStats[key], levelUp.afterStats[key])).join("")}
+        </div>
+        <div class="learned-list">
+          <strong>新しく覚えた魔法</strong>
+          <span>${magic.length ? magic.map((ability) => `${ability.name}（${ability.type}）`).join("、") : "なし"}</span>
+          <strong>新しく覚えた特技</strong>
+          <span>${techniques.length ? techniques.map((ability) => `${ability.name}（${ability.type}）`).join("、") : "なし"}</span>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function levelStatRow(label, before, after) {
+  const diff = after - before;
+  return `
+    <div class="level-stat-row">
+      <span>${label}</span>
+      <strong>${before} → ${after}</strong>
+      <em>+${diff}</em>
     </div>
   `;
 }
