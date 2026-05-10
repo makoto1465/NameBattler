@@ -37,14 +37,23 @@ const TECHNIQUE_BOOK = [
 
 const STAGES = [
   makeEnemy("影の見習い", "盗賊", 1, 62),
-  makeEnemy("草原の番兵", "戦士", 4, 76),
-  makeEnemy("古城の剣士", "戦士", 8, 92),
-  makeEnemy("月読の僧兵", "僧侶", 13, 102),
-  makeEnemy("黒衣の術士", "魔法使い", 19, 116),
-  makeEnemy("疾風の刃", "忍者", 27, 132),
-  makeEnemy("竜骨の武人", "武闘家", 38, 154),
-  makeEnemy("虚無の賢者", "賢者", 54, 182),
-  makeEnemy("終焉の暗黒王", "暗黒騎士", 74, 220)
+  makeEnemy("草原の番兵", "戦士", 2, 68),
+  makeEnemy("古井戸の剣士", "戦士", 3, 72),
+  makeEnemy("夕闇の盗賊", "盗賊", 4, 78),
+  makeEnemy("古城の剣士", "戦士", 6, 84),
+  makeEnemy("月読の僧兵", "僧侶", 8, 90),
+  makeEnemy("黒衣の術士", "魔法使い", 10, 96),
+  makeEnemy("疾風の下忍", "忍者", 13, 104),
+  makeEnemy("竜骨の武人", "武闘家", 16, 112),
+  makeEnemy("夜叉の剣豪", "暗黒騎士", 19, 120),
+  makeEnemy("白銀の僧正", "僧侶", 22, 128),
+  makeEnemy("疾風の刃", "忍者", 26, 138),
+  makeEnemy("星屑の魔導士", "魔法使い", 30, 148),
+  makeEnemy("虚無の賢者", "賢者", 34, 160),
+  makeEnemy("紅蓮の拳王", "武闘家", 37, 172),
+  makeEnemy("冥府の盗王", "盗賊", 41, 186),
+  makeEnemy("黒翼の覇者", "暗黒騎士", 46, 202),
+  makeEnemy("終焉の暗黒王", "暗黒騎士", 51, 220)
 ];
 
 const state = {
@@ -279,13 +288,15 @@ function fullHeal(character) {
 }
 
 function expToNext(level) {
-  return Math.round(120 + level * 78 + level * level * 3.2);
+  return Math.round(90 + level * 48 + level * level * 1.55);
 }
 
 function awardExp(player, enemy, stageIndex) {
   const enemyPower = enemy.stats.hp + enemy.stats.attack * 8 + enemy.stats.magic * 7 + enemy.stats.technique * 6 + enemy.stats.defense * 5 + enemy.stats.magicDefense * 4;
-  const gained = Math.round(160 + enemy.level * 78 + enemyPower / 3.2 + stageIndex * 95);
   const before = player.level;
+  const uphillBonus = Math.max(0, enemy.level - before) * 210;
+  const stageBonus = stageIndex * 160;
+  const gained = Math.round(280 + enemy.level * 110 + enemyPower / 2.2 + stageBonus + uphillBonus);
   const learned = [];
   player.exp += gained;
   while (player.level < 999 && player.exp >= expToNext(player.level)) {
@@ -295,7 +306,7 @@ function awardExp(player, enemy, stageIndex) {
     player.stats = buildStats(player, player.spike || 1);
   }
   fullHeal(player);
-  return { gained, levels: player.level - before, learned };
+  return { gained, levels: player.level - before, beforeLevel: before, afterLevel: player.level, learned };
 }
 
 function render() {
@@ -429,10 +440,14 @@ function renderSetup() {
             `}
             <div class="start-row">
               <button class="primary" data-action="decide">決定</button>
-              ${hasDecision ? `<button data-action="start">戦いを始める</button>` : ""}
             </div>
             <div class="error">${state.error}</div>
             <p class="small-note">名前を決定すると能力が現れます。戦闘後に表示される短い記号つきの名前パターンは、1人用でも2人用でもそのまま使えます。</p>
+            ${hasDecision ? `
+              <div class="battle-start-callout">
+                <button class="battle-start-button" data-action="start">戦いを始める</button>
+              </div>
+            ` : ""}
           </div>
         </div>
         <aside class="panel preview">
@@ -981,10 +996,10 @@ function finishBattle(playerWon) {
       state.result = {
         won: true,
         title: clearedFinal ? "全ステージ制覇" : "勝利",
+        levelUp: outcome.levels > 0 ? outcome : null,
         lines: [
           `${battle.enemy.displayName}を倒した。`,
           `獲得経験値：${outcome.gained}`,
-          `上がったレベル：${outcome.levels}`,
           `次のレベルまで：${expToNext(state.player.level) - state.player.exp} 経験値`,
           outcome.learned.length ? `新しく覚えた技：${outcome.learned.join("、")}` : "新しく覚えた魔法・特技：なし",
           `この強さの${state.player.name}は、下の名前パターンで呼び出せます。`
@@ -998,6 +1013,7 @@ function finishBattle(playerWon) {
       state.result = {
         won: false,
         title: "敗北",
+        levelUp: null,
         lines: [
           `${battle.enemy.displayName}に倒された。`,
           `次のレベルまで：${expToNext(state.player.level) - state.player.exp} 経験値`,
@@ -1011,6 +1027,7 @@ function finishBattle(playerWon) {
     state.result = {
       won: playerWon,
       title: playerWon ? `${battle.player.displayName}の勝利` : `${battle.enemy.displayName}の勝利`,
+      levelUp: null,
       lines: ["名前に宿る運命が決着を告げた。"],
       code: null,
       next: "duelRetry"
@@ -1038,6 +1055,7 @@ function renderResult() {
       </header>
       <section class="panel result">
         <h2>${result.title}</h2>
+        ${result.levelUp ? levelUpMarkup(result.levelUp) : ""}
         ${result.lines.map((line) => `<p>${escapeHtml(line)}</p>`).join("")}
         ${result.code ? `
           <div>
@@ -1091,6 +1109,17 @@ function renderResult() {
       }, 1200);
     });
   }
+}
+
+function levelUpMarkup(levelUp) {
+  return `
+    <div class="level-up-card">
+      <div class="level-up-aura"></div>
+      <div class="level-up-label">レベルアップ</div>
+      <div class="level-up-main">+${levelUp.levels}</div>
+      <div class="level-up-sub">レベル ${levelUp.beforeLevel} → ${levelUp.afterLevel}</div>
+    </div>
+  `;
 }
 
 function showEffect(side, type) {
