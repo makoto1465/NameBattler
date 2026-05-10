@@ -35,26 +35,35 @@ const TECHNIQUE_BOOK = [
   { name: "無双乱舞", minLevel: 45, jobs: ["武闘家", "忍者"], cost: 52, kind: "technique", power: 1.86, type: "特技", effect: "技術が高いほど伸びる上級特技" }
 ];
 
-const STAGES = [
-  makeEnemy("影の見習い", "盗賊", 1, 62),
-  makeEnemy("草原の番兵", "戦士", 2, 68),
-  makeEnemy("古井戸の剣士", "戦士", 3, 72),
-  makeEnemy("夕闇の盗賊", "盗賊", 4, 78),
-  makeEnemy("古城の剣士", "戦士", 6, 84),
-  makeEnemy("月読の僧兵", "僧侶", 8, 90),
-  makeEnemy("黒衣の術士", "魔法使い", 10, 96),
-  makeEnemy("疾風の下忍", "忍者", 13, 104),
-  makeEnemy("竜骨の武人", "武闘家", 16, 112),
-  makeEnemy("夜叉の剣豪", "暗黒騎士", 19, 120),
-  makeEnemy("白銀の僧正", "僧侶", 22, 128),
-  makeEnemy("疾風の刃", "忍者", 26, 138),
-  makeEnemy("星屑の魔導士", "魔法使い", 30, 148),
-  makeEnemy("虚無の賢者", "賢者", 34, 160),
-  makeEnemy("紅蓮の拳王", "武闘家", 37, 172),
-  makeEnemy("冥府の盗王", "盗賊", 41, 186),
-  makeEnemy("黒翼の覇者", "暗黒騎士", 46, 202),
-  makeEnemy("終焉の暗黒王", "暗黒騎士", 51, 220)
+const STAGE_LEVELS = [
+  1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
+  11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+  22, 24, 26, 28, 30, 32, 34, 36, 38, 40,
+  43, 46, 49, 52, 55, 58, 61, 64, 67, 70,
+  73, 76, 79, 82, 85, 88, 91, 94, 97, 99
 ];
+
+const STAGE_NAMES = [
+  "影の見習い", "草原の番兵", "古井戸の剣士", "夕闇の盗賊", "森の格闘家",
+  "薄明の僧兵", "黒衣の術士", "疾風の下忍", "土煙の武人", "夜叉の剣士",
+  "白銀の祈祷師", "双刃の盗賊", "火花の魔導士", "骨砕きの拳士", "古城の隊長",
+  "月読の僧兵", "疾風の刃", "竜骨の武人", "冥府の使者", "星屑の魔導士",
+  "黒羽の剣豪", "氷雨の僧正", "影渡りの忍者", "紅蓮の拳王", "虚無の賢者",
+  "黄金の盗王", "雷鳴の魔人", "鉄壁の戦鬼", "白夜の大僧正", "百影の忍頭",
+  "深淵の騎将", "天文の賢王", "不滅の剣聖", "冥府の盗神", "星滅の魔導王",
+  "神速の影皇", "破軍の拳聖", "聖盾の大神官", "黒翼の覇者", "虚空の賢帝",
+  "焦熱の魔皇", "無明の暗黒騎士", "銀河の僧帝", "百鬼の盗帝", "天墜の武神",
+  "終末の魔導王", "無限の賢帝", "神域の剣王", "終焉の前触れ", "終焉の暗黒王"
+];
+
+const STAGE_JOBS = ["盗賊", "戦士", "戦士", "盗賊", "武闘家", "僧侶", "魔法使い", "忍者", "武闘家", "暗黒騎士", "僧侶", "盗賊", "魔法使い", "武闘家", "戦士", "僧侶", "忍者", "武闘家", "暗黒騎士", "魔法使い", "暗黒騎士", "僧侶", "忍者", "武闘家", "賢者"];
+
+const STAGES = STAGE_LEVELS.map((level, index) => makeEnemy(
+  STAGE_NAMES[index],
+  STAGE_JOBS[index % STAGE_JOBS.length],
+  level,
+  Math.round(62 + index * 4.8 + level * 0.72)
+));
 
 const state = {
   screen: "title",
@@ -288,15 +297,16 @@ function fullHeal(character) {
 }
 
 function expToNext(level) {
-  return Math.round(90 + level * 48 + level * level * 1.55);
+  return Math.round(70 + level * 42 + level * level * 1.25);
 }
 
 function awardExp(player, enemy, stageIndex) {
   const enemyPower = enemy.stats.hp + enemy.stats.attack * 8 + enemy.stats.magic * 7 + enemy.stats.technique * 6 + enemy.stats.defense * 5 + enemy.stats.magicDefense * 4;
   const before = player.level;
-  const uphillBonus = Math.max(0, enemy.level - before) * 210;
-  const stageBonus = stageIndex * 160;
-  const gained = Math.round(280 + enemy.level * 110 + enemyPower / 2.2 + stageBonus + uphillBonus);
+  const levelGap = Math.max(0, enemy.level - before);
+  const uphillBonus = levelGap * 180 + levelGap * levelGap * 45;
+  const stageBonus = stageIndex * 70;
+  const gained = Math.round(180 + enemy.level * 75 + enemyPower / 3.2 + stageBonus + uphillBonus);
   const learned = [];
   player.exp += gained;
   while (player.level < 999 && player.exp >= expToNext(player.level)) {
