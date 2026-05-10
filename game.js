@@ -889,18 +889,74 @@ function pickAction(actor, target) {
   const magic = availableMagic(actor).filter((ability) => actor.currentMp >= ability.cost);
   const techniques = availableTechniques(actor).filter((ability) => actor.currentTp >= ability.cost);
   const heals = magic.filter((ability) => ability.kind === "heal");
-  const buffs = magic.filter((ability) => ability.kind === "buff");
+  const buffs = [...techniques, ...magic].filter((ability) => ability.kind === "buff");
   const debuffs = [...techniques, ...magic].filter((ability) => ability.kind === "debuff");
-  const techBuffs = techniques.filter((ability) => ability.kind === "buff");
   const attacks = [...techniques.filter((ability) => ability.kind === "technique"), ...magic.filter((ability) => ability.kind === "magic")];
-  if (actor.currentHp < actor.stats.hp * 0.28 && heals.length && actor.healUses < 3) return { ability: heals[heals.length - 1] };
-  if (actor.currentHp < actor.stats.hp * 0.55 && techBuffs.length && Math.random() < 0.24) return { ability: techBuffs[techBuffs.length - 1] };
-  if (actor.currentHp < actor.stats.hp * 0.45 && buffs.length && Math.random() < 0.24) return { ability: buffs[buffs.length - 1] };
-  if (debuffs.length && Math.random() < 0.22) return { ability: debuffs[debuffs.length - 1] };
-  if (target.currentHp < actor.stats.attack * 1.25) return "attack";
-  if (attacks.length && Math.random() < 0.62) return { ability: attacks[attacks.length - 1] };
-  if (actor.currentHp < actor.stats.hp * 0.22 && Math.random() < 0.35) return "defend";
+  const hpRate = actor.currentHp / actor.stats.hp;
+  const targetHpRate = target.currentHp / target.stats.hp;
+  const killMove = bestAttack(actor, target, attacks, true);
+  if (killMove) return killMove;
+  if (hpRate < 0.34) {
+    if (heals.length && (actor.healUses || 0) < 3) return { ability: heals[heals.length - 1] };
+    return "defend";
+  }
+  const urgentDebuff = bestDebuff(actor, target, debuffs);
+  if (urgentDebuff && !target.effects?.[urgentDebuff.stat]) return { ability: urgentDebuff };
+  const usefulBuff = bestBuff(actor, target, buffs);
+  if (usefulBuff && !actor.effects?.[usefulBuff.stat] && (hpRate > 0.42 || usefulBuff.stat === "defense" || usefulBuff.stat === "magicDefense")) {
+    return { ability: usefulBuff };
+  }
+  const attack = bestAttack(actor, target, attacks, false);
+  if (attack && (targetHpRate > 0.25 || Math.random() < 0.75)) return attack;
+  if (hpRate < 0.38 && Math.random() < 0.45) return "defend";
   return "attack";
+}
+
+function bestAttack(actor, target, attacks, onlyKill) {
+  const candidates = ["attack", ...attacks.map((ability) => ({ ability }))].map((command) => {
+    const ability = command.ability;
+    const type = ability?.kind || "attack";
+    const costBias = ability ? 1 - Math.min(0.22, (ability.cost || 0) / 260) : 1;
+    const estimate = estimateDamage(actor, target, type, ability) * costBias;
+    return { command, estimate };
+  }).sort((a, b) => b.estimate - a.estimate);
+  const best = candidates[0];
+  if (!best) return null;
+  if (onlyKill && best.estimate < target.currentHp) return null;
+  return best.command;
+}
+
+function bestBuff(actor, target, buffs) {
+  const wantsMagic = actor.stats.magic > actor.stats.attack;
+  const priorities = [
+    actor.currentHp < actor.stats.hp * 0.52 ? "defense" : null,
+    actor.currentHp < actor.stats.hp * 0.52 ? "magicDefense" : null,
+    wantsMagic ? "magic" : "attack"
+  ].filter(Boolean);
+  return priorities.map((stat) => buffs.find((ability) => ability.stat === stat)).find(Boolean) || null;
+}
+
+function bestDebuff(actor, target, debuffs) {
+  const targetPhysical = target.stats.attack + target.stats.technique > target.stats.magic * 1.15;
+  const targetFaster = effectiveStat(target, "speed") > effectiveStat(actor, "speed") + 6;
+  const priorities = [
+    targetFaster ? "speed" : null,
+    targetPhysical ? "attack" : "magic"
+  ].filter(Boolean);
+  return priorities.map((stat) => debuffs.find((ability) => ability.stat === stat)).find(Boolean) || null;
+}
+
+function estimateDamage(actor, target, type, ability = null) {
+  const power = ability?.power || 1;
+  const attackSide = type === "magic"
+    ? (effectiveStat(actor, "magic") * 1.05 + effectiveStat(actor, "luck") * 0.12) * power
+    : type === "technique"
+      ? (effectiveStat(actor, "technique") * 0.88 + effectiveStat(actor, "attack") * 0.5 + effectiveStat(actor, "speed") * 0.1) * power
+    : effectiveStat(actor, "attack") * 0.9 + effectiveStat(actor, "luck") * 0.16;
+  const defenseSide = type === "magic"
+    ? effectiveStat(target, "magicDefense") * 0.78 + effectiveStat(target, "luck") * 0.16
+    : effectiveStat(target, "defense") * 0.78 + effectiveStat(target, "luck") * 0.16;
+  return Math.min(Math.max(1, attackSide - defenseSide), damageCap(target, type, Boolean(ability), false));
 }
 
 function playerAction(command) {
