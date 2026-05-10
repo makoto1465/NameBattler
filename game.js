@@ -54,6 +54,10 @@ function hashText(text) {
   return h >>> 0;
 }
 
+function unitHash(text, salt) {
+  return hashText(`${salt}::${text}`) / 4294967296;
+}
+
 function rng(seed) {
   let value = seed >>> 0;
   return () => {
@@ -97,16 +101,16 @@ function makeNamePattern(character) {
   return `${character.name}${values.map((value) => SYMBOLS[value]).join("")}`;
 }
 
-function rareLevel(random) {
-  let base = Math.floor(1 + Math.pow(random(), 3.15) * 98);
-  if (base === 1 && random() > 0.18) {
-    base = 2 + Math.floor(random() * 4);
-  }
-  const omen = random();
-  if (omen > 0.995) return clamp(base + 45, 1, 99);
-  if (omen > 0.975) return clamp(base + 24, 1, 99);
-  if (omen < 0.035) return clamp(base - 8, 1, 99);
-  return base;
+function rareLevelFromName(name) {
+  const baseRoll = unitHash(name, "NameBattler-level-v3");
+  const omenRoll = unitHash(name, "NameBattler-level-omen-v3");
+  const base = baseRoll < 0.025
+    ? 1
+    : 2 + Math.floor(Math.pow((baseRoll - 0.025) / 0.975, 2.18) * 97);
+  if (omenRoll > 0.992) return clamp(base + 38, 1, 99);
+  if (omenRoll > 0.972) return clamp(base + 18, 1, 99);
+  if (omenRoll < 0.026) return clamp(base - 5, 1, 99);
+  return clamp(base, 1, 99);
 }
 
 function createCharacter(inputName, options = {}) {
@@ -115,17 +119,16 @@ function createCharacter(inputName, options = {}) {
   if (!baseName) throw new Error("名前を入力してください。");
 
   const seed = hashText(baseName);
-  const random = rng(seed);
-  const job = JOBS[Math.floor(random() * JOBS.length)];
-  const generatedLevel = rareLevel(random);
+  const job = JOBS[Math.floor(unitHash(baseName, "NameBattler-job-v3") * JOBS.length)];
+  const generatedLevel = rareLevelFromName(baseName);
   const initialLevel = options.level || pattern.level || generatedLevel;
-  const tint = `hsl(${Math.floor(random() * 360)} 76% 58%)`;
-  const dark = `hsl(${Math.floor(random() * 360)} 54% 28%)`;
-  const aura = `hsla(${Math.floor(random() * 360)} 92% 66% / 0.72)`;
-  const nature = 0.78 + Math.pow(random(), 2.2) * 0.82;
-  const spikeRoll = random();
+  const tint = `hsl(${Math.floor(unitHash(baseName, "NameBattler-tint-v3") * 360)} 76% 58%)`;
+  const dark = `hsl(${Math.floor(unitHash(baseName, "NameBattler-dark-v3") * 360)} 54% 28%)`;
+  const aura = `hsla(${Math.floor(unitHash(baseName, "NameBattler-aura-v3") * 360)} 92% 66% / 0.72)`;
+  const nature = 0.78 + Math.pow(unitHash(baseName, "NameBattler-nature-v3"), 2.2) * 0.82;
+  const spikeRoll = unitHash(baseName, "NameBattler-spike-v3");
   const spike = spikeRoll > 0.94 ? 1.65 : spikeRoll < 0.05 ? 0.58 : 1;
-  const focus = ["attack", "defense", "magic", "speed", "luck"][Math.floor(random() * 5)];
+  const focus = ["attack", "defense", "magic", "speed", "luck"][Math.floor(unitHash(baseName, "NameBattler-focus-v3") * 5)];
   const character = {
     id: `${baseName}-${seed}`,
     name: baseName,
