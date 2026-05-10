@@ -225,7 +225,7 @@ function makeEnemy(name, jobName, level, power) {
   const job = JOBS.find((item) => item.name === jobName) || JOBS[0];
   const seed = hashText(`${name}:${level}`);
   const random = rng(seed);
-  const factor = power / 100;
+  const factor = 0.78 + power / 520;
   const enemy = {
     id: `enemy-${seed}`,
     name,
@@ -241,16 +241,16 @@ function makeEnemy(name, jobName, level, power) {
     focus: "attack"
   };
   enemy.stats = {
-    hp: Math.round((64 + level * 9.6) * factor * job.hp),
-    mp: Math.round((18 + level * 4.4) * factor * job.mp),
-    tp: Math.round((16 + level * 3.6) * factor * job.tp),
-    attack: Math.round((12 + level * 2.8) * factor * job.attack),
-    defense: Math.round((10 + level * 2.45) * factor * job.defense),
-    magic: Math.round((10 + level * 2.65) * factor * job.magic),
-    magicDefense: Math.round((9 + level * 2.25) * factor * job.magicDefense),
-    technique: Math.round((9 + level * 2.45) * factor * job.technique),
-    speed: Math.round((8 + level * 2.25) * factor * job.speed),
-    luck: Math.round((6 + level * 1.95) * factor * job.luck)
+    hp: Math.round((58 + level * 8.9) * factor * job.hp),
+    mp: Math.round((16 + level * 3.8) * factor * job.mp),
+    tp: Math.round((15 + level * 3.2) * factor * job.tp),
+    attack: Math.round((10 + level * 2.5) * factor * job.attack),
+    defense: Math.round((9 + level * 2.22) * factor * job.defense),
+    magic: Math.round((9 + level * 2.38) * factor * job.magic),
+    magicDefense: Math.round((8 + level * 2.08) * factor * job.magicDefense),
+    technique: Math.round((8 + level * 2.24) * factor * job.technique),
+    speed: Math.round((7 + level * 2.08) * factor * job.speed),
+    luck: Math.round((5 + level * 1.8) * factor * job.luck)
   };
   enemy.currentHp = enemy.stats.hp;
   enemy.currentMp = enemy.stats.mp;
