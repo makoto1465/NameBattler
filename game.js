@@ -39,6 +39,7 @@ const state = {
   auto: false,
   busy: false,
   result: null,
+  audioOn: true,
   audioReady: false,
   audio: null,
   musicTimer: null
@@ -258,7 +259,7 @@ function renderMenu() {
         </div>
         <div class="top-actions">
           <button class="icon-button" data-action="help" aria-label="遊び方を開く" title="遊び方">?</button>
-          <button class="sound-button" data-action="sound">${state.audioReady ? "音あり" : "音を鳴らす"}</button>
+          ${soundButton()}
         </div>
       </header>
       <section class="menu">
@@ -326,6 +327,7 @@ function bindMenu() {
 }
 
 function decideNames() {
+  ensureAudio();
   try {
     state.preview = createCharacter(app.querySelector("#name-one").value);
     state.player = state.preview;
@@ -349,7 +351,7 @@ function decideNames() {
 
 function bindCommon() {
   const sound = app.querySelector("[data-action='sound']");
-  if (sound) sound.addEventListener("click", initAudio);
+  if (sound) sound.addEventListener("click", toggleAudio);
   const help = app.querySelector("[data-action='help']");
   const modal = app.querySelector("#help-modal");
   if (help && modal) {
@@ -388,7 +390,7 @@ function helpModal() {
           <h3>名前パターン</h3>
           <p>1人用の戦闘後に、元の名前の後ろへ短い記号を足した名前パターンが表示されます。別人の名前には変わりません。そのまま名前欄に入れると、そのレベルの強さとして1人用でも2人用でも使えます。</p>
           <h3>音について</h3>
-          <p>ブラウザの制限により、音は「音を鳴らす」またはゲーム開始を押した後に再生されます。BGMや攻撃音はブラウザ内で生成しています。</p>
+          <p>音はデフォルトでオンです。ブラウザの制限により、最初に「決定」や「戦いを始める」を押した後に再生されます。タイトル横の音ボタンで、いつでもオンとオフを切り替えできます。</p>
         </div>
       </section>
     </div>
@@ -414,12 +416,16 @@ function characterPreview(character) {
   `;
 }
 
+function soundButton() {
+  return `<button class="sound-button ${state.audioOn ? "active" : "off"}" data-action="sound" aria-pressed="${state.audioOn ? "true" : "false"}">${state.audioOn ? "音 オン" : "音 オフ"}</button>`;
+}
+
 function statItem(label, value) {
   return `<div class="stat"><span>${label}</span><strong>${value}</strong></div>`;
 }
 
 function startGame() {
-  initAudio();
+  ensureAudio();
   try {
     if (!state.preview || (state.mode === "duel" && !state.previewTwo)) {
       decideNames();
@@ -470,6 +476,7 @@ function renderBattle() {
         </div>
         <div class="top-actions">
           <button class="icon-button" data-action="help" aria-label="遊び方を開く" title="遊び方">?</button>
+          ${soundButton()}
           <button data-action="back">最初に戻る</button>
         </div>
       </header>
@@ -544,7 +551,6 @@ function fighterMarkup(character, side) {
 function bindBattle() {
   bindCommon();
   app.querySelector("[data-action='back']").addEventListener("click", () => {
-    stopMusic();
     state.screen = "menu";
     state.battle = null;
     state.result = null;
@@ -742,7 +748,10 @@ function renderResult() {
           <h1 class="title">NameBattler</h1>
           <p class="subtitle">${result.title}</p>
         </div>
-        <button class="icon-button" data-action="help" aria-label="遊び方を開く" title="遊び方">?</button>
+        <div class="top-actions">
+          <button class="icon-button" data-action="help" aria-label="遊び方を開く" title="遊び方">?</button>
+          ${soundButton()}
+        </div>
       </header>
       <section class="panel result">
         <h2>${result.title}</h2>
@@ -850,20 +859,39 @@ function showResultFlash() {
   });
 }
 
-function initAudio() {
-  if (state.audioReady) return;
+function ensureAudio() {
+  if (!state.audioOn) return;
   const AudioContext = window.AudioContext || window.webkitAudioContext;
   if (!AudioContext) return;
-  state.audio = new AudioContext();
-  state.audioReady = true;
+  if (!state.audio) {
+    state.audio = new AudioContext();
+    state.audioReady = true;
+  }
+  if (state.audio.state === "suspended") {
+    state.audio.resume();
+  }
   startMusic();
 }
 
+function toggleAudio() {
+  state.audioOn = !state.audioOn;
+  if (state.audioOn) {
+    ensureAudio();
+  } else {
+    stopMusic();
+  }
+  render();
+}
+
 function startMusic() {
+  if (!state.audioOn || !state.audio) return;
   stopMusic();
   let step = 0;
   state.musicTimer = setInterval(() => {
-    if (!state.audio) return;
+    if (!state.audioOn || !state.audio) {
+      stopMusic();
+      return;
+    }
     const notes = [110, 146.83, 164.81, 196, 220, 196, 164.81, 146.83];
     const note = notes[step % notes.length];
     tone(note, 0.09, "sawtooth", 0.035);
@@ -878,7 +906,7 @@ function stopMusic() {
 }
 
 function tone(freq, duration, type, volume) {
-  if (!state.audio) return;
+  if (!state.audioOn || !state.audio) return;
   const ctx = state.audio;
   const osc = ctx.createOscillator();
   const gain = ctx.createGain();
@@ -893,6 +921,8 @@ function tone(freq, duration, type, volume) {
 }
 
 function playTone(kind) {
+  if (!state.audioOn) return;
+  ensureAudio();
   if (!state.audioReady) return;
   if (kind === "attack") {
     tone(660, 0.08, "square", 0.09);
