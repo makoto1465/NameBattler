@@ -986,18 +986,25 @@ function calcDamage(actor, target, type, ability = null) {
   const random = rng(hashText(`${actor.id}:${target.id}:${Date.now()}:${Math.random()}`));
   const power = ability?.power || 1;
   const attackSide = type === "magic"
-    ? (actor.stats.magic * 1.35 + actor.stats.luck * 0.16) * power
+    ? (actor.stats.magic * 1.05 + actor.stats.luck * 0.12) * power
     : type === "technique"
-      ? (actor.stats.technique * 1.12 + actor.stats.attack * 0.72 + actor.stats.speed * 0.18) * power
-    : actor.stats.attack * 1.25 + actor.stats.luck * 0.24;
-  const guardRate = target.defending ? 0.92 : 0.58;
+      ? (actor.stats.technique * 0.88 + actor.stats.attack * 0.5 + actor.stats.speed * 0.1) * power
+    : actor.stats.attack * 0.9 + actor.stats.luck * 0.16;
+  const guardRate = target.defending ? 1.28 : 0.78;
   const defenseSide = type === "magic"
-    ? target.stats.magicDefense * guardRate + target.stats.luck * 0.12
-    : target.stats.defense * guardRate + target.stats.luck * 0.12;
-  const critical = random() < clamp(actor.stats.luck / (target.stats.luck * 9 + 180), 0.04, 0.28);
-  const variance = 0.86 + random() * 0.28;
+    ? target.stats.magicDefense * guardRate + target.stats.luck * 0.16
+    : target.stats.defense * guardRate + target.stats.luck * 0.16;
+  const critical = random() < clamp(actor.stats.luck / (target.stats.luck * 12 + 260), 0.03, 0.18);
+  const variance = 0.9 + random() * 0.2;
   const raw = Math.max(1, (attackSide - defenseSide) * variance);
-  return Math.round(raw * (critical ? 1.75 : 1));
+  const capped = Math.min(raw * (critical ? 1.45 : 1), damageCap(target, type, Boolean(ability), critical));
+  return Math.max(1, Math.round(capped));
+}
+
+function damageCap(target, type, isAbility, critical) {
+  const baseRate = type === "attack" ? 0.3 : isAbility ? 0.42 : 0.34;
+  const criticalBonus = critical ? 0.08 : 0;
+  return Math.max(12, target.stats.hp * (baseRate + criticalBonus));
 }
 
 function checkEnd() {
