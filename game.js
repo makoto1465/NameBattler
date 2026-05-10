@@ -200,26 +200,39 @@ function createCharacter(inputName, options = {}) {
 function buildStats(character, spike) {
   const j = character.job;
   const level = character.level;
-  const calc = (base, growth, jobRate) => Math.max(1, Math.round((base + level * growth) * jobRate));
-  return {
-    hp: calc(42, 8.3, j.hp),
-    mp: calc(14, 3.7, j.mp),
-    tp: calc(12, 3.0, j.tp),
-    attack: calc(9, 2.45, j.attack),
-    defense: calc(8, 2.18, j.defense),
-    magic: calc(8, 2.35, j.magic),
-    magicDefense: calc(7, 2.1, j.magicDefense),
-    technique: calc(7, 2.25, j.technique),
-    speed: calc(7, 2.05, j.speed),
-    luck: calc(5, 1.8, j.luck)
+  const base = {
+    hp: (42 + level * 8.3) * j.hp,
+    mp: (14 + level * 3.7) * j.mp,
+    tp: (12 + level * 3.0) * j.tp,
+    attack: (9 + level * 2.45) * j.attack,
+    defense: (8 + level * 2.18) * j.defense,
+    magic: (8 + level * 2.35) * j.magic,
+    magicDefense: (7 + level * 2.1) * j.magicDefense,
+    technique: (7 + level * 2.25) * j.technique,
+    speed: (7 + level * 2.05) * j.speed,
+    luck: (5 + level * 1.8) * j.luck
   };
+  const keys = Object.keys(base);
+  const raw = {};
+  keys.forEach((key) => {
+    const bias = 0.94 + unitHash(character.id, `stat-${key}`) * 0.12;
+    const focusBoost = character.focus === key ? 1.08 : 1;
+    raw[key] = base[key] * bias * focusBoost;
+  });
+  const baseTotal = keys.reduce((sum, key) => sum + base[key], 0);
+  const rawTotal = keys.reduce((sum, key) => sum + raw[key], 0);
+  const scale = baseTotal / rawTotal;
+  return keys.reduce((stats, key) => {
+    stats[key] = Math.max(1, Math.round(raw[key] * scale));
+    return stats;
+  }, {});
 }
 
 function makeEnemy(name, jobName, level, power) {
   const job = JOBS.find((item) => item.name === jobName) || JOBS[0];
   const seed = hashText(`${name}:${level}`);
   const random = rng(seed);
-  const factor = 1;
+  const focusList = ["hp", "mp", "tp", "attack", "defense", "magic", "magicDefense", "technique", "speed", "luck"];
   const enemy = {
     id: `enemy-${seed}`,
     name,
@@ -231,21 +244,10 @@ function makeEnemy(name, jobName, level, power) {
     tint: `hsl(${Math.floor(random() * 360)} 76% 56%)`,
     dark: `hsl(${Math.floor(random() * 360)} 54% 25%)`,
     aura: `hsla(${Math.floor(random() * 360)} 92% 62% / 0.72)`,
-    baseNature: factor,
-    focus: "attack"
+    baseNature: 1,
+    focus: focusList[Math.floor(unitHash(name, `enemy-focus-${level}`) * focusList.length)]
   };
-  enemy.stats = {
-    hp: Math.round((42 + level * 8.3) * factor * job.hp),
-    mp: Math.round((14 + level * 3.7) * factor * job.mp),
-    tp: Math.round((12 + level * 3.0) * factor * job.tp),
-    attack: Math.round((9 + level * 2.45) * factor * job.attack),
-    defense: Math.round((8 + level * 2.18) * factor * job.defense),
-    magic: Math.round((8 + level * 2.35) * factor * job.magic),
-    magicDefense: Math.round((7 + level * 2.1) * factor * job.magicDefense),
-    technique: Math.round((7 + level * 2.25) * factor * job.technique),
-    speed: Math.round((7 + level * 2.05) * factor * job.speed),
-    luck: Math.round((5 + level * 1.8) * factor * job.luck)
-  };
+  enemy.stats = buildStats(enemy, 1);
   enemy.currentHp = enemy.stats.hp;
   enemy.currentMp = enemy.stats.mp;
   enemy.currentTp = enemy.stats.tp;
