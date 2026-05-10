@@ -297,16 +297,16 @@ function fullHeal(character) {
 }
 
 function expToNext(level) {
-  return Math.round(70 + level * 42 + level * level * 1.25);
+  return Math.round(90 + level * 42 + level * level * 2.6);
 }
 
 function awardExp(player, enemy, stageIndex) {
   const enemyPower = enemy.stats.hp + enemy.stats.attack * 8 + enemy.stats.magic * 7 + enemy.stats.technique * 6 + enemy.stats.defense * 5 + enemy.stats.magicDefense * 4;
   const before = player.level;
   const levelGap = Math.max(0, enemy.level - before);
-  const uphillBonus = levelGap * 180 + levelGap * levelGap * 45;
-  const stageBonus = stageIndex * 70;
-  const gained = Math.round(180 + enemy.level * 75 + enemyPower / 3.2 + stageBonus + uphillBonus);
+  const uphillBonus = levelGap * 120 + levelGap * levelGap * 24;
+  const stageBonus = stageIndex * 52;
+  const gained = Math.round(150 + enemy.level * 55 + enemyPower / 4.2 + stageBonus + uphillBonus);
   const learned = [];
   player.exp += gained;
   while (player.level < 999 && player.exp >= expToNext(player.level)) {
