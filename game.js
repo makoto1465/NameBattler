@@ -15,7 +15,7 @@ const JOBS = [
 ];
 
 const STAGES = [
-  makeEnemy("影の見習い", "盗賊", 5, 96),
+  makeEnemy("影の見習い", "盗賊", 1, 72),
   makeEnemy("古城の番兵", "戦士", 12, 118),
   makeEnemy("月読の僧兵", "僧侶", 19, 140),
   makeEnemy("黒衣の術士", "魔法使い", 28, 168),
@@ -98,7 +98,10 @@ function makeNamePattern(character) {
 }
 
 function rareLevel(random) {
-  const base = Math.floor(1 + Math.pow(random(), 3.15) * 98);
+  let base = Math.floor(1 + Math.pow(random(), 3.15) * 98);
+  if (base === 1 && random() > 0.18) {
+    base = 2 + Math.floor(random() * 4);
+  }
   const omen = random();
   if (omen > 0.995) return clamp(base + 45, 1, 99);
   if (omen > 0.975) return clamp(base + 24, 1, 99);
