@@ -16,23 +16,23 @@ const JOBS = [
 
 const MAGIC_BOOK = [
   { name: "魔力弾", minLevel: 1, jobs: ["魔法使い", "僧侶", "賢者", "暗黒騎士"], cost: 0, kind: "magic", power: 1.12, type: "攻撃魔法", effect: "MPなしで撃てる基礎魔法。魔法職の通常攻撃代わりになる" },
-  { name: "火炎弾", minLevel: 5, jobs: ["魔法使い", "賢者", "暗黒騎士"], cost: 8, kind: "magic", power: 1.0, type: "攻撃魔法", effect: "魔力で火球を放つ基本魔法" },
-  { name: "魔力集中", minLevel: 10, jobs: ["魔法使い", "僧侶", "賢者"], cost: 6, kind: "buff", power: 1.0, type: "補助魔法", effect: "身構えて次の被ダメージを抑える補助魔法" },
-  { name: "癒しの光", minLevel: 8, jobs: ["僧侶", "賢者"], cost: 18, kind: "heal", power: 0.82, type: "回復魔法", effect: "HPを少し回復する。同じ戦闘で使うほど効果低下" },
-  { name: "黒雷", minLevel: 18, jobs: ["魔法使い", "賢者", "暗黒騎士"], cost: 16, kind: "magic", power: 1.34, type: "攻撃魔法", effect: "魔力を中心にした雷撃ダメージ" },
-  { name: "聖光再生", minLevel: 24, jobs: ["僧侶", "賢者"], cost: 28, kind: "heal", power: 1.12, type: "回復魔法", effect: "HPを大きく回復するが消費MPが重い" },
-  { name: "冥王炎", minLevel: 34, jobs: ["暗黒騎士", "魔法使い"], cost: 24, kind: "magic", power: 1.62, type: "攻撃魔法", effect: "魔力と攻撃力を混ぜた闇炎ダメージ" },
-  { name: "星詠み", minLevel: 48, jobs: ["賢者"], cost: 32, kind: "magic", power: 1.92, type: "攻撃魔法", effect: "高い魔法防御も貫きやすい星光魔法" }
+  { name: "火炎弾", minLevel: 5, jobs: ["魔法使い", "賢者", "暗黒騎士"], cost: 18, kind: "magic", power: 1.0, type: "攻撃魔法", effect: "魔力で火球を放つ基本魔法" },
+  { name: "魔力集中", minLevel: 10, jobs: ["魔法使い", "僧侶", "賢者"], cost: 16, kind: "buff", power: 1.0, type: "補助魔法", effect: "身構えて次の被ダメージを抑える補助魔法" },
+  { name: "癒しの光", minLevel: 8, jobs: ["僧侶", "賢者"], cost: 34, kind: "heal", power: 0.82, type: "回復魔法", effect: "HPを少し回復する。同じ戦闘で使うほど効果低下" },
+  { name: "黒雷", minLevel: 18, jobs: ["魔法使い", "賢者", "暗黒騎士"], cost: 38, kind: "magic", power: 1.34, type: "攻撃魔法", effect: "魔力を中心にした雷撃ダメージ" },
+  { name: "聖光再生", minLevel: 24, jobs: ["僧侶", "賢者"], cost: 52, kind: "heal", power: 1.12, type: "回復魔法", effect: "HPを大きく回復するが消費MPが重い" },
+  { name: "冥王炎", minLevel: 34, jobs: ["暗黒騎士", "魔法使い"], cost: 58, kind: "magic", power: 1.62, type: "攻撃魔法", effect: "魔力と攻撃力を混ぜた闇炎ダメージ" },
+  { name: "星詠み", minLevel: 48, jobs: ["賢者"], cost: 76, kind: "magic", power: 1.92, type: "攻撃魔法", effect: "高い魔法防御も貫きやすい星光魔法" }
 ];
 
 const TECHNIQUE_BOOK = [
   { name: "けん制", minLevel: 1, jobs: ["盗賊", "忍者", "魔法使い", "僧侶", "賢者"], cost: 0, kind: "technique", power: 0.72, type: "特技", effect: "技術で相手の隙を突く軽い特技" },
   { name: "強打", minLevel: 1, jobs: ["戦士", "武闘家", "暗黒騎士"], cost: 0, kind: "technique", power: 0.92, type: "特技", effect: "技術と攻撃力で打ち込む基本特技" },
-  { name: "影縫い", minLevel: 7, jobs: ["忍者", "盗賊"], cost: 4, kind: "technique", power: 1.08, type: "特技", effect: "技術と素早さを乗せた一撃" },
-  { name: "竜牙連撃", minLevel: 15, jobs: ["武闘家", "忍者"], cost: 8, kind: "technique", power: 1.34, type: "特技", effect: "低燃費で連続攻撃を叩き込む" },
-  { name: "覇王斬", minLevel: 22, jobs: ["戦士", "暗黒騎士"], cost: 10, kind: "technique", power: 1.56, type: "特技", effect: "攻撃力と技術を合わせた重い斬撃" },
-  { name: "運命強奪", minLevel: 30, jobs: ["盗賊"], cost: 10, kind: "technique", power: 1.42, type: "特技", effect: "運の高さも乗る奇襲ダメージ" },
-  { name: "無双乱舞", minLevel: 45, jobs: ["武闘家", "忍者"], cost: 16, kind: "technique", power: 1.86, type: "特技", effect: "技術が高いほど伸びる上級特技" }
+  { name: "影縫い", minLevel: 7, jobs: ["忍者", "盗賊"], cost: 14, kind: "technique", power: 1.08, type: "特技", effect: "技術と素早さを乗せた一撃" },
+  { name: "竜牙連撃", minLevel: 15, jobs: ["武闘家", "忍者"], cost: 24, kind: "technique", power: 1.34, type: "特技", effect: "連続攻撃を叩き込む中級特技" },
+  { name: "覇王斬", minLevel: 22, jobs: ["戦士", "暗黒騎士"], cost: 34, kind: "technique", power: 1.56, type: "特技", effect: "攻撃力と技術を合わせた重い斬撃" },
+  { name: "運命強奪", minLevel: 30, jobs: ["盗賊"], cost: 32, kind: "technique", power: 1.42, type: "特技", effect: "運の高さも乗る奇襲ダメージ" },
+  { name: "無双乱舞", minLevel: 45, jobs: ["武闘家", "忍者"], cost: 52, kind: "technique", power: 1.86, type: "特技", effect: "技術が高いほど伸びる上級特技" }
 ];
 
 const STAGES = [
@@ -279,12 +279,12 @@ function fullHeal(character) {
 }
 
 function expToNext(level) {
-  return Math.round(80 + level * level * 16);
+  return Math.round(120 + level * 78 + level * level * 3.2);
 }
 
 function awardExp(player, enemy, stageIndex) {
   const enemyPower = enemy.stats.hp + enemy.stats.attack * 8 + enemy.stats.magic * 7 + enemy.stats.technique * 6 + enemy.stats.defense * 5 + enemy.stats.magicDefense * 4;
-  const gained = Math.round(enemy.level * 42 + enemyPower / 5 + stageIndex * 55);
+  const gained = Math.round(160 + enemy.level * 78 + enemyPower / 3.2 + stageIndex * 95);
   const before = player.level;
   const learned = [];
   player.exp += gained;

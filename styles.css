@@ -175,23 +175,30 @@ select:focus {
 .mode-select {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
+  align-self: start;
+  align-items: start;
+  gap: 12px;
+  max-width: 820px;
+  margin: 0 auto;
 }
 
 .mode-card {
-  min-height: 220px;
+  min-height: 118px;
   display: grid;
-  place-content: center;
-  gap: 10px;
-  text-align: center;
+  align-content: center;
+  justify-items: start;
+  gap: 6px;
+  padding: 18px 20px;
+  text-align: left;
 }
 
 .mode-card strong {
-  font-size: 1.7rem;
+  font-size: 1.25rem;
 }
 
 .mode-card span {
   color: var(--muted);
+  line-height: 1.45;
 }
 
 .sound-button {
