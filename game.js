@@ -30,6 +30,7 @@ const state = {
   mode: "solo",
   error: "",
   preview: null,
+  previewTwo: null,
   player: null,
   enemy: null,
   second: null,
@@ -71,6 +72,30 @@ function normalizeName(value) {
   return value.trim().replace(/\s+/g, " ");
 }
 
+function readNamePattern(input) {
+  const text = normalizeName(input);
+  if (text.length < 5) return { ok: false, name: text };
+  const tail = Array.from(text.slice(-4));
+  if (tail.length !== 4 || tail.some((char) => !SYMBOLS.includes(char))) {
+    return { ok: false, name: text };
+  }
+  const name = text.slice(0, -4);
+  const values = tail.map((char) => SYMBOLS.indexOf(char));
+  const level = (values[0] << 8) + (values[1] << 4) + values[2];
+  const check = hashText(`${name}:名前パターン:${level}`) & 15;
+  if (name && level >= 1 && level <= 999 && check === values[3]) {
+    return { ok: true, name, level };
+  }
+  return { ok: false, name: text };
+}
+
+function makeNamePattern(character) {
+  const level = clamp(character.level, 1, 999);
+  const values = [(level >> 8) & 15, (level >> 4) & 15, level & 15];
+  values.push(hashText(`${character.name}:名前パターン:${level}`) & 15);
+  return `${character.name}${values.map((value) => SYMBOLS[value]).join("")}`;
+}
+
 function rareLevel(random) {
   const base = Math.floor(1 + Math.pow(random(), 3.15) * 98);
   const omen = random();
@@ -81,18 +106,15 @@ function rareLevel(random) {
 }
 
 function createCharacter(inputName, options = {}) {
-  const decoded = decodeGrowthName(inputName);
-  if (!decoded.ok && inputName.includes("†")) {
-    throw new Error(decoded.message);
-  }
-
-  const baseName = decoded.ok ? decoded.name : normalizeName(inputName);
+  const pattern = readNamePattern(inputName);
+  const baseName = pattern.ok ? pattern.name : normalizeName(inputName);
   if (!baseName) throw new Error("名前を入力してください。");
 
   const seed = hashText(baseName);
   const random = rng(seed);
   const job = JOBS[Math.floor(random() * JOBS.length)];
-  const initialLevel = options.level || rareLevel(random);
+  const generatedLevel = rareLevel(random);
+  const initialLevel = options.level || pattern.level || generatedLevel;
   const tint = `hsl(${Math.floor(random() * 360)} 76% 58%)`;
   const dark = `hsl(${Math.floor(random() * 360)} 54% 28%)`;
   const aura = `hsla(${Math.floor(random() * 360)} 92% 66% / 0.72)`;
@@ -112,15 +134,12 @@ function createCharacter(inputName, options = {}) {
     dark,
     aura,
     baseNature: nature,
-    focus
+    focus,
+    spike
   };
   character.stats = buildStats(character, spike);
 
-  if (decoded.ok) {
-    character.level = decoded.level;
-    character.exp = decoded.exp;
-    character.stats = buildStats(character, 1);
-  }
+  character.patternUsed = pattern.ok;
   character.currentHp = character.stats.hp;
   character.currentMp = character.stats.mp;
   return character;
@@ -180,61 +199,6 @@ function makeEnemy(name, jobName, level, power) {
   return enemy;
 }
 
-function checksum(text) {
-  return hashText(`ネームバトラー:${text}`).toString(16).padStart(8, "0").slice(0, 8);
-}
-
-function bytesToSymbols(bytes) {
-  let out = "";
-  bytes.forEach((byte) => {
-    out += SYMBOLS[(byte >> 4) & 15] + SYMBOLS[byte & 15];
-  });
-  return out;
-}
-
-function symbolsToBytes(text) {
-  if (text.length % 2 !== 0) return null;
-  const bytes = [];
-  for (let i = 0; i < text.length; i += 2) {
-    const a = SYMBOLS.indexOf(text[i]);
-    const b = SYMBOLS.indexOf(text[i + 1]);
-    if (a < 0 || b < 0) return null;
-    bytes.push((a << 4) | b);
-  }
-  return bytes;
-}
-
-function encodeGrowthName(character) {
-  const body = JSON.stringify({ v: 1, l: character.level, e: character.exp });
-  const payload = JSON.stringify({ body, check: checksum(`${character.name}:${body}`) });
-  const bytes = Array.from(new TextEncoder().encode(payload));
-  return `${character.name}†${bytesToSymbols(bytes)}`;
-}
-
-function decodeGrowthName(input) {
-  const text = normalizeName(input);
-  if (!text.includes("†")) return { ok: false, message: "" };
-  const split = text.split("†");
-  const name = normalizeName(split[0]);
-  const code = split.slice(1).join("");
-  if (!name || !code) return { ok: false, message: "成長コードの形式が正しくありません。" };
-  try {
-    const bytes = symbolsToBytes(code);
-    if (!bytes) return { ok: false, message: "成長コードに使えない記号が含まれています。" };
-    const payload = JSON.parse(new TextDecoder().decode(new Uint8Array(bytes)));
-    const body = JSON.parse(payload.body);
-    if (payload.check !== checksum(`${name}:${payload.body}`)) {
-      return { ok: false, message: "成長コードの確認値が合いません。" };
-    }
-    if (body.v !== 1 || body.l < 1 || body.l > 999 || body.e < 0) {
-      return { ok: false, message: "成長コードの中身が正しくありません。" };
-    }
-    return { ok: true, name, level: Math.floor(body.l), exp: Math.floor(body.e) };
-  } catch (error) {
-    return { ok: false, message: "成長コードを読み取れませんでした。" };
-  }
-}
-
 function cloneForBattle(character) {
   return {
     ...character,
@@ -263,7 +227,7 @@ function awardExp(player, enemy, stageIndex) {
   while (player.level < 999 && player.exp >= expToNext(player.level)) {
     player.exp -= expToNext(player.level);
     player.level += 1;
-    player.stats = buildStats(player, 1);
+    player.stats = buildStats(player, player.spike || 1);
   }
   fullHeal(player);
   return { gained, levels: player.level - before };
@@ -282,11 +246,14 @@ function render() {
 }
 
 function renderMenu() {
+  const nameOneValue = document.querySelector("#name-one")?.value || "";
+  const nameTwoValue = document.querySelector("#name-two")?.value || "";
+  const hasDecision = Boolean(state.preview && (state.mode === "solo" || state.previewTwo));
   app.innerHTML = `
     <main class="shell">
       <header class="topbar">
         <div>
-          <h1 class="title">ネームバトラー</h1>
+          <h1 class="title">NameBattler</h1>
           <p class="subtitle">名前に眠る運命を呼び起こし、横視点の戦場でぶつけ合え。</p>
         </div>
         <div class="top-actions">
@@ -301,28 +268,29 @@ function renderMenu() {
             <button class="mode-button ${state.mode === "solo" ? "active" : ""}" data-mode="solo">1人用</button>
             <button class="mode-button ${state.mode === "duel" ? "active" : ""}" data-mode="duel">2人用</button>
           </div>
-          <div class="form-grid">
-            <label class="field">
-              <span>${state.mode === "solo" ? "あなたの名前" : "プレイヤー1の名前"}</span>
-              <input id="name-one" value="${escapeAttr(document.querySelector("#name-one")?.value || "")}" placeholder="例：太郎">
+            <div class="form-grid">
+              <label class="field">
+                <span>${state.mode === "solo" ? "あなたの名前" : "プレイヤー1の名前"}</span>
+              <input id="name-one" value="${escapeAttr(nameOneValue)}" placeholder="例：太郎">
             </label>
             ${state.mode === "duel" ? `
               <label class="field">
                 <span>プレイヤー2の名前</span>
-                <input id="name-two" value="${escapeAttr(document.querySelector("#name-two")?.value || "")}" placeholder="例：花子">
+                <input id="name-two" value="${escapeAttr(nameTwoValue)}" placeholder="例：花子">
               </label>
             ` : ""}
             <div class="start-row">
-              <button class="primary" data-action="start">戦いを始める</button>
-              <button data-action="preview">能力を見る</button>
+              <button class="primary" data-action="decide">決定</button>
+              ${hasDecision ? `<button data-action="start">戦いを始める</button>` : ""}
             </div>
             <div class="error">${state.error}</div>
-            <p class="small-note">成長コードを持っている場合は、名前欄にそのまま貼り付けると続きから再現できます。</p>
+            <p class="small-note">名前を決定すると能力が現れます。戦闘後に表示される短い記号つきの名前パターンは、1人用でも2人用でもそのまま使えます。</p>
           </div>
         </div>
         <aside class="panel preview">
           <h2>呼び出された能力</h2>
-          ${state.preview ? characterPreview(state.preview) : `<p class="small-note">名前を入力して「能力を見る」を押すと、職業と能力が表示されます。</p>`}
+          ${state.preview ? characterPreview(state.preview) : `<p class="small-note">名前を入力して「決定」を押すと、職業と能力が表示されます。</p>`}
+          ${state.previewTwo ? characterPreview(state.previewTwo) : ""}
         </aside>
       </section>
       ${helpModal()}
@@ -336,22 +304,47 @@ function bindMenu() {
     button.addEventListener("click", () => {
       state.mode = button.dataset.mode;
       state.preview = null;
+      state.previewTwo = null;
+      state.player = null;
+      state.second = null;
       state.error = "";
       render();
     });
   });
   bindCommon();
-  app.querySelector("[data-action='preview']").addEventListener("click", () => {
-    try {
-      state.preview = createCharacter(app.querySelector("#name-one").value);
-      state.error = "";
-    } catch (error) {
+  app.querySelectorAll("#name-one, #name-two").forEach((input) => {
+    input.addEventListener("input", () => {
       state.preview = null;
-      state.error = error.message;
-    }
-    render();
+      state.previewTwo = null;
+      state.player = null;
+      state.second = null;
+    });
   });
-  app.querySelector("[data-action='start']").addEventListener("click", startGame);
+  app.querySelector("[data-action='decide']").addEventListener("click", decideNames);
+  const start = app.querySelector("[data-action='start']");
+  if (start) start.addEventListener("click", startGame);
+}
+
+function decideNames() {
+  try {
+    state.preview = createCharacter(app.querySelector("#name-one").value);
+    state.player = state.preview;
+    if (state.mode === "duel") {
+      state.previewTwo = createCharacter(app.querySelector("#name-two").value);
+      state.second = state.previewTwo;
+    } else {
+      state.previewTwo = null;
+      state.second = null;
+    }
+    state.error = "";
+  } catch (error) {
+    state.preview = null;
+    state.previewTwo = null;
+    state.player = null;
+    state.second = null;
+    state.error = error.message;
+  }
+  render();
 }
 
 function bindCommon() {
@@ -387,13 +380,13 @@ function helpModal() {
           <h3>名前でキャラクターを作る</h3>
           <p>名前を入力すると、職業、レベル、HP、MP、攻撃力、防御力、魔力、素早さ、運が決まります。同じ名前なら、いつでも同じ能力になります。</p>
           <h3>1人用</h3>
-          <p>固定された敵を順番に倒してステージを進めます。敵の強さはあなたのレベルに合わせて変わらないので、強い名前や成長コードが攻略の鍵になります。</p>
+          <p>固定された敵を順番に倒してステージを進めます。敵の強さはあなたのレベルに合わせて変わらないので、強い名前や成長した名前パターンが攻略の鍵になります。</p>
           <h3>2人用</h3>
           <p>プレイヤー1とプレイヤー2の名前を入れると、それぞれの名前から生まれたキャラクター同士で戦います。</p>
           <h3>戦闘操作</h3>
           <p>マニュアル操作では、通常攻撃、職業スキル、防御、様子を見るを選べます。オート操作に切り替えると、自動で行動を選びます。戦闘中にいつでも切り替えできます。</p>
-          <h3>復活の呪文風コード</h3>
-          <p>1人用の戦闘後に、成長後の状態を表す記号つきの名前が表示されます。次回、そのまま名前欄に貼り付けると、レベルや経験値を復元できます。</p>
+          <h3>名前パターン</h3>
+          <p>1人用の戦闘後に、元の名前の後ろへ短い記号を足した名前パターンが表示されます。別人の名前には変わりません。そのまま名前欄に入れると、そのレベルの強さとして1人用でも2人用でも使えます。</p>
           <h3>音について</h3>
           <p>ブラウザの制限により、音は「音を鳴らす」またはゲーム開始を押した後に再生されます。BGMや攻撃音はブラウザ内で生成しています。</p>
         </div>
@@ -404,9 +397,10 @@ function helpModal() {
 
 function characterPreview(character) {
   return `
-    <div class="preview-card">
+      <div class="preview-card">
       <div class="name-row"><span>${escapeHtml(character.name)}</span><span>レベル ${character.level}</span></div>
       <div class="job">${character.job.name}</div>
+      ${character.patternUsed ? `<p class="pattern-note">記号つきの名前パターンから呼び出しました。</p>` : ""}
       <div class="stat-grid">
         ${statItem("HP", character.stats.hp)}
         ${statItem("MP", character.stats.mp)}
@@ -427,13 +421,17 @@ function statItem(label, value) {
 function startGame() {
   initAudio();
   try {
-    const one = createCharacter(app.querySelector("#name-one").value);
+    if (!state.preview || (state.mode === "duel" && !state.previewTwo)) {
+      decideNames();
+      return;
+    }
+    const one = state.preview;
     if (state.mode === "solo") {
       state.player = one;
       state.stageIndex = 0;
       startBattle(cloneForBattle(state.player), cloneForBattle(STAGES[state.stageIndex]));
     } else {
-      const two = createCharacter(app.querySelector("#name-two").value);
+      const two = state.previewTwo;
       state.player = one;
       state.second = two;
       startBattle(cloneForBattle(one), cloneForBattle(two));
@@ -467,7 +465,7 @@ function renderBattle() {
     <main class="shell battle">
       <header class="topbar">
         <div>
-          <h1 class="title">ネームバトラー</h1>
+          <h1 class="title">NameBattler</h1>
           <p class="subtitle">${state.mode === "solo" ? `第${state.stageIndex + 1}ステージ` : "2人用対戦"}</p>
         </div>
         <div class="top-actions">
@@ -494,7 +492,7 @@ function renderBattle() {
           </div>
           <div class="command-grid">
             <button data-command="attack" ${commandDisabled()}>通常攻撃</button>
-            <button data-command="skill" ${commandDisabled()}>${battle.player.job.skill}</button>
+            <button data-command="skill" ${commandDisabled()}>${battle.player.job.skill}<span>消費MP ${battle.player.job.cost}</span></button>
             <button data-command="defend" ${commandDisabled()}>防御</button>
             <button data-command="wait" ${commandDisabled()}>様子を見る</button>
           </div>
@@ -701,9 +699,10 @@ function finishBattle(playerWon) {
         lines: [
           `${battle.enemy.displayName}を倒した。`,
           `獲得経験値：${outcome.gained}`,
-          `上がったレベル：${outcome.levels}`
+          `上がったレベル：${outcome.levels}`,
+          `この強さの${state.player.name}は、下の名前パターンで呼び出せます。`
         ],
-        code: encodeGrowthName(state.player),
+        code: makeNamePattern(state.player),
         next: clearedFinal ? "menu" : "next"
       };
       if (!clearedFinal) state.stageIndex += 1;
@@ -714,9 +713,9 @@ function finishBattle(playerWon) {
         title: "敗北",
         lines: [
           `${battle.enemy.displayName}に倒された。`,
-          "傷は癒えた。成長コードで今の力を残せる。"
+          "傷は癒えた。今の強さは、元の名前に記号を足した名前パターンで残せる。"
         ],
-        code: encodeGrowthName(state.player),
+        code: makeNamePattern(state.player),
         next: "retry"
       };
     }
@@ -740,7 +739,7 @@ function renderResult() {
     <main class="shell">
       <header class="topbar">
         <div>
-          <h1 class="title">ネームバトラー</h1>
+          <h1 class="title">NameBattler</h1>
           <p class="subtitle">${result.title}</p>
         </div>
         <button class="icon-button" data-action="help" aria-label="遊び方を開く" title="遊び方">?</button>
@@ -750,8 +749,9 @@ function renderResult() {
         ${result.lines.map((line) => `<p>${escapeHtml(line)}</p>`).join("")}
         ${result.code ? `
           <div>
-            <div class="small-note">復活の呪文風コード</div>
+            <div class="small-note">この強さになる名前パターン</div>
             <div class="code-box">${escapeHtml(result.code)}</div>
+            <button data-action="copy-code">コピー</button>
           </div>
         ` : ""}
         <div class="start-row">
@@ -781,6 +781,16 @@ function renderResult() {
       startBattle(cloneForBattle(state.player), cloneForBattle(STAGES[state.stageIndex]));
     });
   }
+  const copy = app.querySelector("[data-action='copy-code']");
+  if (copy) {
+    copy.addEventListener("click", async () => {
+      await copyText(state.result.code);
+      copy.textContent = "コピー済み";
+      setTimeout(() => {
+        copy.textContent = "コピー";
+      }, 1200);
+    });
+  }
 }
 
 function showEffect(side, type) {
@@ -795,6 +805,25 @@ function showEffect(side, type) {
     effect.style.left = `${rect.left - layerRect.left + rect.width / 2 - 85}px`;
     effect.style.top = `${rect.top - layerRect.top + rect.height / 2 - 75}px`;
     layer.appendChild(effect);
+    if (type === "slash" || type === "spell") {
+      const impact = document.createElement("div");
+      impact.className = "impact";
+      impact.style.left = `${rect.left - layerRect.left + rect.width / 2 - 82}px`;
+      impact.style.top = `${rect.top - layerRect.top + rect.height / 2 - 82}px`;
+      layer.appendChild(impact);
+      setTimeout(() => impact.remove(), 900);
+      for (let i = 0; i < 10; i += 1) {
+        const spark = document.createElement("div");
+        spark.className = "spark";
+        spark.style.left = `${rect.left - layerRect.left + rect.width / 2}px`;
+        spark.style.top = `${rect.top - layerRect.top + rect.height / 2}px`;
+        spark.style.setProperty("--rot", `${i * 36}deg`);
+        spark.style.setProperty("--x", `${Math.cos(i / 10 * Math.PI * 2) * 105}px`);
+        spark.style.setProperty("--y", `${Math.sin(i / 10 * Math.PI * 2) * 78}px`);
+        layer.appendChild(spark);
+        setTimeout(() => spark.remove(), 900);
+      }
+    }
     setTimeout(() => effect.remove(), 1000);
   });
 }
@@ -879,6 +908,21 @@ function playTone(kind) {
   } else if (kind === "down") {
     [196, 164.81, 130.81].forEach((freq, index) => setTimeout(() => tone(freq, 0.2, "sawtooth", 0.055), index * 120));
   }
+}
+
+async function copyText(text) {
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(text);
+    return;
+  }
+  const input = document.createElement("textarea");
+  input.value = text;
+  input.style.position = "fixed";
+  input.style.opacity = "0";
+  document.body.appendChild(input);
+  input.select();
+  document.execCommand("copy");
+  input.remove();
 }
 
 function escapeHtml(value) {

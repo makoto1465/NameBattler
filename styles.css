@@ -209,6 +209,13 @@ input:focus {
   gap: 8px;
 }
 
+.pattern-note {
+  margin: 8px 0;
+  color: var(--gold);
+  font-size: 0.86rem;
+  line-height: 1.5;
+}
+
 .stat {
   display: flex;
   justify-content: space-between;
@@ -465,30 +472,46 @@ input:focus {
 .slash,
 .spell,
 .heal,
+.impact,
+.spark,
 .level-flash {
   position: absolute;
   pointer-events: none;
 }
 
 .slash {
-  width: 190px;
-  height: 70px;
+  width: 230px;
+  height: 92px;
   border-radius: 50%;
-  border-top: 9px solid rgba(255, 255, 255, 0.94);
-  border-right: 16px solid rgba(114, 214, 255, 0.84);
-  filter: drop-shadow(0 0 16px #72d6ff);
+  border-top: 12px solid rgba(255, 255, 255, 0.96);
+  border-right: 20px solid rgba(114, 214, 255, 0.88);
+  filter: drop-shadow(0 0 18px #72d6ff) drop-shadow(0 0 28px rgba(248, 214, 126, 0.62));
   transform: rotate(-26deg);
-  animation: slash 520ms ease-out forwards;
+  animation: slash 620ms ease-out forwards;
+}
+
+.slash::after {
+  content: "";
+  position: absolute;
+  width: 180px;
+  height: 50px;
+  right: 20px;
+  top: 28px;
+  border-radius: 50%;
+  border-bottom: 7px solid rgba(248, 214, 126, 0.86);
+  filter: blur(0.4px);
 }
 
 .spell {
-  width: 170px;
-  height: 170px;
+  width: 210px;
+  height: 210px;
   border: 3px solid currentColor;
   border-radius: 50%;
   color: var(--violet);
-  box-shadow: 0 0 26px currentColor, inset 0 0 26px currentColor;
-  animation: spell 760ms ease-out forwards;
+  background:
+    conic-gradient(from 30deg, transparent 0 12%, rgba(255,255,255,0.32) 12% 14%, transparent 14% 28%, currentColor 28% 30%, transparent 30% 100%);
+  box-shadow: 0 0 32px currentColor, inset 0 0 34px currentColor, 0 0 70px rgba(184, 140, 255, 0.42);
+  animation: spell 920ms ease-out forwards;
 }
 
 .spell::before,
@@ -506,6 +529,26 @@ input:focus {
   border-radius: 50%;
   background: radial-gradient(circle, rgba(142, 255, 174, 0.72), transparent 62%);
   animation: heal 700ms ease-out forwards;
+}
+
+.impact {
+  width: 170px;
+  height: 170px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, rgba(255, 255, 255, 0.82) 0 8%, rgba(248, 214, 126, 0.86) 9% 18%, transparent 42%),
+    repeating-conic-gradient(from 12deg, rgba(255, 85, 115, 0.78) 0 8deg, transparent 8deg 20deg);
+  filter: drop-shadow(0 0 24px rgba(248, 214, 126, 0.88));
+  animation: impact 620ms ease-out forwards;
+}
+
+.spark {
+  width: 10px;
+  height: 46px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #fff, #f8d66e, transparent);
+  box-shadow: 0 0 14px #f8d66e;
+  animation: spark 760ms ease-out forwards;
 }
 
 .level-flash {
@@ -529,6 +572,18 @@ input:focus {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
+}
+
+.command-grid button {
+  min-height: 64px;
+}
+
+.command-grid button span {
+  display: block;
+  margin-top: 4px;
+  color: #ffe8a8;
+  font-size: 0.78rem;
+  font-weight: 700;
 }
 
 .toggle-row {
@@ -669,6 +724,18 @@ input:focus {
   from { opacity: 0; transform: scale(0.35) rotate(0deg); }
   50% { opacity: 1; }
   to { opacity: 0; transform: scale(1.28) rotate(170deg); }
+}
+
+@keyframes impact {
+  from { opacity: 0; transform: scale(0.25) rotate(0deg); }
+  35% { opacity: 1; }
+  to { opacity: 0; transform: scale(1.2) rotate(95deg); }
+}
+
+@keyframes spark {
+  from { opacity: 0; transform: translate(0, 0) rotate(var(--rot)) scaleY(0.45); }
+  25% { opacity: 1; }
+  to { opacity: 0; transform: translate(var(--x), var(--y)) rotate(var(--rot)) scaleY(1.12); }
 }
 
 @keyframes heal {
