@@ -77,6 +77,21 @@ const STAGE_NAMES = [
 
 const STAGE_JOBS = ["盗賊", "戦士", "戦士", "盗賊", "武闘家", "僧侶", "魔法使い", "忍者", "武闘家", "暗黒騎士", "僧侶", "盗賊", "魔法使い", "武闘家", "戦士", "僧侶", "忍者", "武闘家", "暗黒騎士", "魔法使い", "暗黒騎士", "僧侶", "忍者", "武闘家", "賢者"];
 
+const SEED_SHOP = [
+  { key: "hp", name: "命の種", price: 120, gain: 18, description: "HPを18上げる" },
+  { key: "mp", name: "魔力の雫", price: 110, gain: 10, description: "MPを10上げる" },
+  { key: "tp", name: "技の霊薬", price: 110, gain: 10, description: "TPを10上げる" },
+  { key: "attack", name: "力の種", price: 150, gain: 3, description: "攻撃力を3上げる" },
+  { key: "defense", name: "守りの種", price: 140, gain: 3, description: "防御力を3上げる" },
+  { key: "magic", name: "魔力の種", price: 150, gain: 3, description: "魔力を3上げる" },
+  { key: "magicDefense", name: "抗魔の種", price: 140, gain: 3, description: "魔法防御を3上げる" },
+  { key: "technique", name: "技術の種", price: 145, gain: 3, description: "技術を3上げる" },
+  { key: "speed", name: "疾風の種", price: 145, gain: 3, description: "素早さを3上げる" },
+  { key: "luck", name: "幸運の種", price: 130, gain: 3, description: "運を3上げる" }
+];
+
+const BATTLE_SPEEDS = [0.75, 1, 1.5, 2];
+
 const STAGES = STAGE_LEVELS.map((level, index) => makeEnemy(
   STAGE_NAMES[index],
   STAGE_JOBS[index % STAGE_JOBS.length],
@@ -100,6 +115,7 @@ const state = {
   busy: false,
   actionMenu: null,
   result: null,
+  battleSpeed: 1,
   audioOn: true,
   audioReady: false,
   audio: null,
@@ -142,6 +158,21 @@ function normalizeName(value) {
 function readNamePattern(input) {
   const text = normalizeName(input);
   if (text.length < 5) return { ok: false, name: text };
+  const longTail = Array.from(text.slice(-14));
+  if (longTail.length === 14 && longTail.every((char) => SYMBOLS.includes(char))) {
+    const name = text.slice(0, -14);
+    const values = longTail.map((char) => SYMBOLS.indexOf(char));
+    const level = (values[0] << 8) + (values[1] << 4) + values[2];
+    const counts = values.slice(3, 13);
+    const check = hashText(`${name}:名前パターン:${level}:${counts.join(",")}`) & 15;
+    if (name && level >= 1 && level <= 999 && check === values[13]) {
+      const seedBoosts = {};
+      SEED_SHOP.forEach((item, index) => {
+        if (counts[index]) seedBoosts[item.key] = counts[index] * item.gain;
+      });
+      return { ok: true, name, level, seedBoosts };
+    }
+  }
   const tail = Array.from(text.slice(-4));
   if (tail.length !== 4 || tail.some((char) => !SYMBOLS.includes(char))) {
     return { ok: false, name: text };
@@ -159,6 +190,13 @@ function readNamePattern(input) {
 function makeNamePattern(character) {
   const level = clamp(character.level, 1, 999);
   const values = [(level >> 8) & 15, (level >> 4) & 15, level & 15];
+  const hasBoosts = SEED_SHOP.some((item) => character.seedBoosts?.[item.key]);
+  if (hasBoosts) {
+    const counts = SEED_SHOP.map((item) => clamp(Math.round((character.seedBoosts?.[item.key] || 0) / item.gain), 0, 15));
+    values.push(...counts);
+    values.push(hashText(`${character.name}:名前パターン:${level}:${counts.join(",")}`) & 15);
+    return `${character.name}${values.map((value) => SYMBOLS[value]).join("")}`;
+  }
   values.push(hashText(`${character.name}:名前パターン:${level}`) & 15);
   return `${character.name}${values.map((value) => SYMBOLS[value]).join("")}`;
 }
@@ -208,6 +246,9 @@ function createCharacter(inputName, options = {}) {
     spike
   };
   character.stats = buildStats(character, spike);
+  character.gold = options.gold || 0;
+  character.seedBoosts = options.seedBoosts || pattern.seedBoosts || {};
+  applySeedBoosts(character);
 
   character.patternUsed = pattern.ok;
   character.currentHp = character.stats.hp;
@@ -247,6 +288,13 @@ function buildStats(character, spike) {
   }, {});
 }
 
+function applySeedBoosts(character) {
+  if (!character.seedBoosts) character.seedBoosts = {};
+  Object.entries(character.seedBoosts).forEach(([key, value]) => {
+    if (character.stats[key]) character.stats[key] += value;
+  });
+}
+
 function makeEnemy(name, jobName, level, power) {
   const job = JOBS.find((item) => item.name === jobName) || JOBS[0];
   const seed = hashText(`${name}:${level}`);
@@ -264,7 +312,8 @@ function makeEnemy(name, jobName, level, power) {
     dark: `hsl(${Math.floor(random() * 360)} 54% 25%)`,
     aura: `hsla(${Math.floor(random() * 360)} 92% 62% / 0.72)`,
     baseNature: 1,
-    focus: focusList[Math.floor(unitHash(name, `enemy-focus-${level}`) * focusList.length)]
+    focus: focusList[Math.floor(unitHash(name, `enemy-focus-${level}`) * focusList.length)],
+    goldReward: power
   };
   enemy.stats = buildStats(enemy, 1);
   enemy.currentHp = enemy.stats.hp;
@@ -278,6 +327,8 @@ function cloneForBattle(character) {
     ...character,
     job: { ...character.job },
     stats: { ...character.stats },
+    gold: character.gold || 0,
+    seedBoosts: { ...(character.seedBoosts || {}) },
     currentHp: character.stats.hp,
     currentMp: character.stats.mp,
     currentTp: character.stats.tp,
@@ -335,6 +386,7 @@ function awardExp(player, enemy, stageIndex) {
     player.level += 1;
     learned.push(...learnedAbilitiesAtLevel(player, player.level));
     player.stats = buildStats(player, player.spike || 1);
+    applySeedBoosts(player);
   }
   fullHeal(player);
   return { gained, levels: player.level - before, beforeLevel: before, afterLevel: player.level, beforeStats, afterStats: { ...player.stats }, learned };
@@ -583,13 +635,15 @@ function helpModal() {
           <h3>2人用</h3>
           <p>プレイヤー1とプレイヤー2の名前を入れると、それぞれの名前から生まれたキャラクター同士で戦います。</p>
           <h3>戦闘操作</h3>
-          <p>マニュアル操作では、通常攻撃、魔法、特技、防御、様子を見るを選べます。回復魔法は強力ですが消費MPが大きく、同じ戦闘で使うほど回復量が落ちます。特技はTPを消費します。オート操作に切り替えると、自動で行動を選びます。</p>
+          <p>マニュアル操作では、通常攻撃、魔法、特技、防御、様子を見るを選べます。回復魔法は強力ですが消費MPが大きく、同じ戦闘で使うほど回復量が落ちます。特技はTPを消費します。オート操作に切り替えると、自動で行動を選びます。戦闘中は0.75倍速、1倍速、1.5倍速、2倍速を切り替えられます。</p>
           <h3>スキルの種類</h3>
           <p>魔法は魔力と魔法防御、特技は技術と攻撃力が重要です。職業とレベルによって覚える魔法・特技が変わり、低レベルでは使えないものもあります。各キャラクターの能力欄と戦闘画面に、種類・消費MPまたは消費TP・効果を表示しています。</p>
           <h3>職業の違い</h3>
           <p>戦士や武闘家は特技型、魔法使いや賢者は魔法型、暗黒騎士は物理と魔法の混合型です。魔法職は通常攻撃が弱い代わりに、低レベルからMPなしの基礎魔法を使えるようにしています。</p>
           <h3>名前パターン</h3>
           <p>1人用の戦闘後に、元の名前の後ろへ短い記号を足した名前パターンが表示されます。別人の名前には変わりません。そのまま名前欄に入れると、そのレベルの強さとして1人用でも2人用でも使えます。</p>
+          <h3>お金と能力の種</h3>
+          <p>戦闘後には勝っても負けてもお金が手に入ります。結果画面の能力の種屋で、HP、MP、TP、攻撃力、防御力、魔力、魔法防御、技術、素早さ、運を少しずつ伸ばせます。種で伸ばした能力も、記号つきの名前パターンに含まれます。</p>
           <h3>音について</h3>
           <p>音はデフォルトでオンです。タイトル画面と戦闘画面では別のBGMが流れます。ブラウザの制限により、最初に「決定」や「戦いを始める」を押した後に再生されます。</p>
         </div>
@@ -689,7 +743,7 @@ function startBattle(player, enemy) {
   logLine(`${player.displayName}が現れた。レベル ${player.level}、${player.job.name}。`);
   logLine(`${enemy.displayName}が立ちはだかった。レベル ${enemy.level}、${enemy.job.name}。`);
   render();
-  if (state.battle.turn === "enemy") setTimeout(enemyTurn, 650);
+  if (state.battle.turn === "enemy") afterBattleDelay(enemyTurn, 900);
 }
 
 function renderBattle() {
@@ -707,6 +761,9 @@ function renderBattle() {
         <div class="top-actions">
           <button class="icon-button" data-action="help" aria-label="遊び方を開く" title="遊び方">?</button>
           ${soundButton()}
+          <div class="speed-control" aria-label="戦闘速度">
+            ${BATTLE_SPEEDS.map((speed) => `<button class="${state.battleSpeed === speed ? "active" : ""}" data-speed="${speed}">${speed}倍速</button>`).join("")}
+          </div>
           <button data-action="back">最初に戻る</button>
         </div>
       </header>
@@ -811,6 +868,12 @@ function bindBattle() {
     state.auto = true;
     render();
   });
+  app.querySelectorAll("[data-speed]").forEach((button) => {
+    button.addEventListener("click", () => {
+      state.battleSpeed = Number(button.dataset.speed);
+      render();
+    });
+  });
   app.querySelectorAll("[data-command]").forEach((button) => {
     button.addEventListener("click", () => playerAction(button.dataset.command));
   });
@@ -869,13 +932,21 @@ function hasResource(character, ability) {
   return ability.kind === "technique" ? character.currentTp >= ability.cost : character.currentMp >= ability.cost;
 }
 
+function battleDelay(ms) {
+  return Math.round(ms / (state.battleSpeed || 1));
+}
+
+function afterBattleDelay(callback, ms) {
+  setTimeout(callback, battleDelay(ms));
+}
+
 function logLine(text) {
   state.battle.log.unshift(text);
   state.battle.log = state.battle.log.slice(0, 12);
 }
 
 function scheduleAuto() {
-  setTimeout(() => {
+  afterBattleDelay(() => {
     if (state.screen !== "battle" || !state.auto || state.busy || state.battle.ended) return;
     if (state.battle.turn === "player") {
       playerAction(pickAction(state.battle.player, state.battle.enemy));
@@ -965,7 +1036,7 @@ function playerAction(command) {
     if (!checkEnd()) {
       state.battle.turn = "enemy";
       render();
-      setTimeout(enemyTurn, 650);
+      afterBattleDelay(enemyTurn, 900);
     }
   });
 }
@@ -990,7 +1061,8 @@ function performAction(actor, target, command, done) {
     actor.defending = true;
     logLine(`${actor.displayName}は身構えた。`);
     playTone("guard");
-    setTimeout(() => finishAction(done), 420);
+    showBattleText(actor === state.battle.player ? "player" : "enemy", "防御", "buff");
+    afterBattleDelay(() => finishAction(done), 780);
     render();
     return;
   }
@@ -1012,7 +1084,8 @@ function performAction(actor, target, command, done) {
       logLine(`${actor.displayName}の${ability.name}。聖なる光が傷を包み、HPが${amount}回復した。`);
       playTone("heal");
       showEffect(actor === state.battle.player ? "player" : "enemy", "heal");
-      setTimeout(() => finishAction(done), 760);
+      showBattleText(actor === state.battle.player ? "player" : "enemy", `+${amount}`, "heal");
+      afterBattleDelay(() => finishAction(done), 1200);
       render();
       return;
     }
@@ -1021,7 +1094,8 @@ function performAction(actor, target, command, done) {
       logLine(`${actor.displayName}の${ability.name}。${STAT_LABELS[ability.stat]}がしばらく上がった。`);
       playTone("guard");
       showEffect(actor === state.battle.player ? "player" : "enemy", "heal");
-      setTimeout(() => finishAction(done), 620);
+      showBattleText(actor === state.battle.player ? "player" : "enemy", `${STAT_LABELS[ability.stat]}↑`, "buff");
+      afterBattleDelay(() => finishAction(done), 1050);
       render();
       return;
     }
@@ -1030,21 +1104,26 @@ function performAction(actor, target, command, done) {
       logLine(`${actor.displayName}の${ability.name}。${target.displayName}の${STAT_LABELS[ability.stat]}がしばらく下がった。`);
       playTone("magic");
       showEffect(target === state.battle.player ? "player" : "enemy", "spell");
-      setTimeout(() => finishAction(done), 700);
+      showBattleText(target === state.battle.player ? "player" : "enemy", `${STAT_LABELS[ability.stat]}↓`, "debuff");
+      afterBattleDelay(() => finishAction(done), 1150);
       render();
       return;
     }
     const result = calcDamage(actor, target, ability.kind, ability);
     if (result.missed) {
       logLine(`${actor.displayName}の${ability.name}。しかし${target.displayName}はかわした。`);
+      showBattleText(target === state.battle.player ? "player" : "enemy", "ミス", "miss");
     } else {
       target.currentHp -= result.damage;
       logLine(`${actor.displayName}の${ability.name}。${result.critical ? "会心の一撃。 " : ""}${target.displayName}に${result.damage}のダメージ。`);
+      showBattleText(target === state.battle.player ? "player" : "enemy", `${result.damage}`, result.critical ? "critical" : "damage");
     }
     playTone(ability.kind === "magic" ? "magic" : "attack");
+    if (result.critical) screenShake();
+    if (ability.kind === "technique") flashSprite(actor, "attack");
     showEffect(target === state.battle.player ? "player" : "enemy", ability.kind === "magic" ? "spell" : "slash");
     flashSprite(target, "hit");
-    setTimeout(() => finishAction(done), 840);
+    afterBattleDelay(() => finishAction(done), 1320);
     render();
     return;
   }
@@ -1056,15 +1135,18 @@ function performAction(actor, target, command, done) {
   const result = calcDamage(actor, target, "attack");
   if (result.missed) {
     logLine(`${actor.displayName}の通常攻撃。しかし${target.displayName}は身をひるがえしてかわした。`);
+    showBattleText(target === state.battle.player ? "player" : "enemy", "ミス", "miss");
   } else {
     target.currentHp -= result.damage;
     logLine(`${actor.displayName}の通常攻撃。${result.critical ? "会心の一撃。 " : "刃が走り、"}${target.displayName}に${result.damage}のダメージ。`);
+    showBattleText(target === state.battle.player ? "player" : "enemy", `${result.damage}`, result.critical ? "critical" : "damage");
   }
   playTone("attack");
+  if (result.critical) screenShake();
   flashSprite(actor, "attack");
   flashSprite(target, "hit");
   showEffect(target === state.battle.player ? "player" : "enemy", "slash");
-  setTimeout(() => finishAction(done), 640);
+  afterBattleDelay(() => finishAction(done), 1120);
   render();
 }
 
@@ -1151,7 +1233,7 @@ function checkEnd() {
   state.auto = false;
   const playerWon = battle.enemy.currentHp <= 0;
   playTone(playerWon ? "win" : "down");
-  setTimeout(() => finishBattle(playerWon), 650);
+  afterBattleDelay(() => finishBattle(playerWon), 1100);
   return true;
 }
 
@@ -1160,14 +1242,18 @@ function finishBattle(playerWon) {
   if (state.mode === "solo") {
     if (playerWon) {
       const outcome = awardExp(state.player, battle.enemy, state.stageIndex);
+      const gold = battle.enemy.goldReward || Math.round(70 + battle.enemy.level * 6);
+      state.player.gold = (state.player.gold || 0) + gold;
       const clearedFinal = state.stageIndex >= STAGES.length - 1;
       state.result = {
         won: true,
         title: clearedFinal ? "全ステージ制覇" : "勝利",
         levelUp: outcome.levels > 0 ? outcome : null,
+        gold,
         lines: [
           `${battle.enemy.displayName}を倒した。`,
           `獲得経験値：${outcome.gained}`,
+          `獲得したお金：${gold}`,
           `次のレベルまで：${expToNext(state.player.level) - state.player.exp} 経験値`,
           `この強さの${state.player.name}は、下の名前パターンで呼び出せます。`
         ],
@@ -1176,13 +1262,17 @@ function finishBattle(playerWon) {
       };
       if (!clearedFinal) state.stageIndex += 1;
     } else {
+      const gold = Math.max(18, Math.round((battle.enemy.goldReward || 60) * 0.28));
+      state.player.gold = (state.player.gold || 0) + gold;
       fullHeal(state.player);
       state.result = {
         won: false,
         title: "敗北",
         levelUp: null,
+        gold,
         lines: [
           `${battle.enemy.displayName}に倒された。`,
+          `獲得したお金：${gold}`,
           `次のレベルまで：${expToNext(state.player.level) - state.player.exp} 経験値`,
           "傷は癒えた。今の強さは、元の名前に記号を足した名前パターンで残せる。"
         ],
@@ -1224,6 +1314,7 @@ function renderResult() {
         <h2>${result.title}</h2>
         ${result.levelUp ? levelUpMarkup(result.levelUp) : ""}
         ${result.lines.map((line) => `<p>${escapeHtml(line)}</p>`).join("")}
+        ${state.mode === "solo" && state.player ? seedShopMarkup() : ""}
         ${result.code ? `
           <div>
             <div class="small-note">この強さになる名前パターン</div>
@@ -1276,6 +1367,50 @@ function renderResult() {
       }, 1200);
     });
   }
+  app.querySelectorAll("[data-seed]").forEach((button) => {
+    button.addEventListener("click", () => buySeed(button.dataset.seed));
+  });
+}
+
+function seedShopMarkup() {
+  return `
+    <div class="seed-shop">
+      <div class="seed-shop-head">
+        <div>
+          <strong>能力の種屋</strong>
+          <span>今のお金：${state.player.gold || 0}</span>
+        </div>
+        <p>個体差で低めに出た名前でも、戦闘後のお金で能力を底上げできます。</p>
+      </div>
+      ${state.result.shopMessage ? `<p class="shop-message">${escapeHtml(state.result.shopMessage)}</p>` : ""}
+      <div class="seed-grid">
+        ${SEED_SHOP.map((item) => `
+          <button data-seed="${item.key}" ${(state.player.gold || 0) < item.price ? "disabled" : ""}>
+            <strong>${item.name}</strong>
+            <span>${item.description}</span>
+            <em>${item.price}</em>
+          </button>
+        `).join("")}
+      </div>
+    </div>
+  `;
+}
+
+function buySeed(key) {
+  const item = SEED_SHOP.find((seed) => seed.key === key);
+  if (!item || !state.player) return;
+  if ((state.player.gold || 0) < item.price) {
+    state.result.shopMessage = "お金が足りません。";
+    render();
+    return;
+  }
+  state.player.gold -= item.price;
+  state.player.seedBoosts ||= {};
+  state.player.seedBoosts[item.key] = (state.player.seedBoosts[item.key] || 0) + item.gain;
+  state.player.stats[item.key] += item.gain;
+  fullHeal(state.player);
+  state.result.shopMessage = `${item.name}を使った。${STAT_LABELS[item.key]}が${item.gain}上がった。`;
+  render();
 }
 
 function levelUpMarkup(levelUp) {
@@ -1345,6 +1480,33 @@ function showEffect(side, type) {
       }
     }
     setTimeout(() => effect.remove(), 1000);
+  });
+}
+
+function showBattleText(side, text, kind) {
+  requestAnimationFrame(() => {
+    const layer = document.querySelector(".effect-layer");
+    const target = document.querySelector(`[data-sprite="${side}"]`);
+    if (!layer || !target) return;
+    const layerRect = layer.getBoundingClientRect();
+    const rect = target.getBoundingClientRect();
+    const popup = document.createElement("div");
+    popup.className = `float-text ${kind}`;
+    popup.textContent = text;
+    popup.style.left = `${rect.left - layerRect.left + rect.width / 2}px`;
+    popup.style.top = `${rect.top - layerRect.top + rect.height * 0.22}px`;
+    layer.appendChild(popup);
+    setTimeout(() => popup.remove(), battleDelay(1050));
+  });
+}
+
+function screenShake() {
+  requestAnimationFrame(() => {
+    const stage = document.querySelector(".stage");
+    if (!stage) return;
+    stage.classList.remove("shake");
+    void stage.offsetWidth;
+    stage.classList.add("shake");
   });
 }
 
