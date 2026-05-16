@@ -977,8 +977,43 @@ select:focus {
 }
 
 .log p {
-  margin: 0 0 0.55rem;
+  margin: 0 0 0.5rem;
   line-height: 1.45;
+  color: #cfc7b8;
+  transition: opacity 220ms ease, transform 220ms ease, background 220ms ease;
+}
+
+.log p.latest {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  margin: 0 0 0.7rem;
+  border: 1px solid rgba(248, 214, 126, 0.5);
+  border-left: 4px solid var(--gold);
+  border-radius: 6px;
+  background: linear-gradient(90deg, rgba(248, 214, 126, 0.22), rgba(114, 214, 255, 0.1));
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28), 0 0 24px rgba(248, 214, 126, 0.12);
+  padding: 0.65rem 0.75rem;
+  color: #fff8df;
+  font-weight: 800;
+  animation: logLatestPulse 760ms ease both;
+}
+
+.log p.latest::before {
+  content: "最新";
+  display: inline-grid;
+  place-items: center;
+  min-width: 2.5rem;
+  margin-right: 0.55rem;
+  border-radius: 999px;
+  background: rgba(248, 214, 126, 0.18);
+  color: var(--gold);
+  font-size: 0.72rem;
+  line-height: 1.45;
+}
+
+.log p:not(.latest) {
+  opacity: 0.72;
 }
 
 .result {
@@ -1355,6 +1390,18 @@ select:focus {
 @keyframes startPulse {
   0%, 100% { box-shadow: 0 0 0 0 rgba(142, 255, 174, 0.34), 0 18px 34px rgba(0, 0, 0, 0.38); filter: brightness(1); }
   50% { box-shadow: 0 0 0 9px rgba(142, 255, 174, 0), 0 20px 42px rgba(43, 207, 120, 0.24); filter: brightness(1.12); }
+}
+
+@keyframes logLatestPulse {
+  from {
+    transform: translateY(-4px);
+    filter: brightness(1.25);
+  }
+
+  to {
+    transform: translateY(0);
+    filter: brightness(1);
+  }
 }
 
 @keyframes levelCardIn {

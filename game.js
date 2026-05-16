@@ -91,6 +91,7 @@ const SEED_SHOP = [
 ];
 
 const BATTLE_SPEEDS = [0.75, 1, 1.5, 2];
+const BATTLE_SPEED_BASE = 0.75;
 
 const STAGES = STAGE_LEVELS.map((level, index) => makeEnemy(
   STAGE_NAMES[index],
@@ -204,13 +205,12 @@ function makeNamePattern(character) {
 function rareLevelFromName(name) {
   const baseRoll = unitHash(name, "NameBattler-level-v3");
   const omenRoll = unitHash(name, "NameBattler-level-omen-v3");
-  const centered = Math.abs(baseRoll - 0.5) * 2;
-  const direction = baseRoll >= 0.5 ? 1 : -1;
-  const distance = Math.pow(centered, 2.75);
-  const base = Math.round(50 + direction * distance * 49);
-  if (omenRoll > 0.9988) return clamp(base + 28, 1, 99);
-  if (omenRoll > 0.9935) return clamp(base + 14, 1, 99);
-  if (omenRoll < 0.0065) return clamp(base - 14, 1, 99);
+  const common = Math.pow(baseRoll, 1.55);
+  const base = Math.round(1 + common * 56);
+  if (omenRoll > 0.9994) return clamp(base + 43, 1, 99);
+  if (omenRoll > 0.997) return clamp(base + 25, 1, 99);
+  if (omenRoll > 0.986) return clamp(base + 12, 1, 99);
+  if (omenRoll < 0.035) return clamp(base - 6, 1, 99);
   return clamp(base, 1, 99);
 }
 
@@ -783,6 +783,7 @@ function renderBattle() {
   const battle = state.battle;
   const magic = availableMagic(battle.player);
   const techniques = availableTechniques(battle.player);
+  const turnLabel = battle.turn === "player" ? battleSideLabel("player") : battleSideLabel("enemy");
   app.innerHTML = `
     <main class="shell battle">
       <header class="topbar">
@@ -801,7 +802,7 @@ function renderBattle() {
       </header>
       <section class="stage">
         <div class="battle-header">
-          <div class="battle-badge">${battle.turn === "player" ? "あなたの番" : "相手の番"}</div>
+          <div class="battle-badge">${turnLabel}の番</div>
           <div class="battle-badge">${state.auto ? "オート操作中" : "マニュアル操作中"}</div>
         </div>
         <div class="fighters">
@@ -824,7 +825,7 @@ function renderBattle() {
             <button data-command="wait" ${commandDisabled()}>様子を見る</button>
           </div>
         </div>
-        <div class="log">${battle.log.map((line) => `<p>${escapeHtml(line)}</p>`).join("")}</div>
+        <div class="log">${battle.log.map((line, index) => `<p class="${index === 0 ? "latest" : ""}">${escapeHtml(line)}</p>`).join("")}</div>
         <div class="panel skill-panel">
           <h2>スキル効果</h2>
           <p><strong>${battle.player.displayName}</strong>：魔法 ${magic.length}種類 / 特技 ${techniques.length}種類</p>
@@ -837,6 +838,11 @@ function renderBattle() {
   `;
   bindBattle();
   if (state.auto && !state.busy && !battle.ended) scheduleAuto();
+}
+
+function battleSideLabel(side) {
+  if (state.mode === "duel") return side === "player" ? "1P" : "2P";
+  return side === "player" ? "あなた" : "敵";
 }
 
 function commandDisabled() {
@@ -965,7 +971,7 @@ function hasResource(character, ability) {
 }
 
 function battleDelay(ms) {
-  return Math.round(ms / (state.battleSpeed || 1));
+  return Math.round(ms / ((state.battleSpeed || 1) * BATTLE_SPEED_BASE));
 }
 
 function afterBattleDelay(callback, ms) {
