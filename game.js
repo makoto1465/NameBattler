@@ -100,6 +100,36 @@ const MUSIC_VOLUMES = {
   menu: 0.18,
   battle: 0.22
 };
+const SFX_TRACKS = {
+  select: "assets/sfx/ui-select.mp3",
+  confirm: "assets/sfx/ui-confirm.mp3",
+  encounter: "assets/sfx/encounter.mp3",
+  attack: "assets/sfx/attack.mp3",
+  damage: "assets/sfx/damage.mp3",
+  miss: "assets/sfx/miss.mp3",
+  guard: "assets/sfx/guard.mp3",
+  magic: "assets/sfx/magic.mp3",
+  heal: "assets/sfx/heal.mp3",
+  status: "assets/sfx/status.mp3",
+  win: "assets/sfx/reward.mp3",
+  shop: "assets/sfx/reward.mp3",
+  down: "assets/sfx/defeat.mp3"
+};
+const SFX_VOLUMES = {
+  select: 0.42,
+  confirm: 0.48,
+  encounter: 0.38,
+  attack: 0.44,
+  damage: 0.5,
+  miss: 0.36,
+  guard: 0.42,
+  magic: 0.42,
+  heal: 0.44,
+  status: 0.4,
+  win: 0.42,
+  shop: 0.42,
+  down: 0.46
+};
 
 const STAGES = STAGE_LEVELS.map((level, index) => makeEnemy(
   STAGE_NAMES[index],
@@ -129,7 +159,8 @@ const state = {
   audioReady: false,
   audio: null,
   musicTrack: null,
-  musicMode: null
+  musicMode: null,
+  musicRetryArmed: false
 };
 
 function hashText(text) {
@@ -426,7 +457,7 @@ function render() {
 }
 
 function renderTitle() {
-  if (state.audioReady && state.audioOn) startMusic("menu");
+  if (state.audioOn) startMusic("menu");
   app.innerHTML = `
     <main class="shell title-screen">
       <div class="title-orbit"></div>
@@ -445,6 +476,7 @@ function renderTitle() {
   `;
   bindCommon();
   app.querySelector("[data-action='open-mode']").addEventListener("click", () => {
+    playTone("confirm");
     ensureAudio("menu");
     state.screen = "mode";
     state.preview = null;
@@ -454,7 +486,7 @@ function renderTitle() {
 }
 
 function renderModeSelect() {
-  if (state.audioReady && state.audioOn) startMusic("menu");
+  if (state.audioOn) startMusic("menu");
   app.innerHTML = `
     <main class="shell">
       <header class="topbar">
@@ -483,6 +515,7 @@ function renderModeSelect() {
   bindCommon();
   app.querySelectorAll("[data-mode]").forEach((button) => {
     button.addEventListener("click", () => {
+      playTone("confirm");
       state.mode = button.dataset.mode;
       state.screen = "setup";
       state.preview = null;
@@ -496,7 +529,7 @@ function renderModeSelect() {
 }
 
 function renderSetup() {
-  if (state.audioReady && state.audioOn) startMusic("menu");
+  if (state.audioOn) startMusic("menu");
   const nameOneValue = document.querySelector("#name-one")?.value || "";
   const nameTwoValue = document.querySelector("#name-two")?.value || "";
   const hasDecision = Boolean(state.preview && (state.mode === "solo" || state.previewTwo));
@@ -575,6 +608,7 @@ function renderSetup() {
 
 function bindSetup() {
   app.querySelector("[data-action='back-mode']").addEventListener("click", () => {
+    playTone("select");
     state.screen = "mode";
     state.preview = null;
     state.previewTwo = null;
@@ -595,6 +629,7 @@ function bindSetup() {
   const stageSelect = app.querySelector("#stage-select");
   if (stageSelect) {
     stageSelect.addEventListener("change", () => {
+      playTone("select");
       state.selectedStage = Number(stageSelect.value);
     });
   }
@@ -605,6 +640,7 @@ function bindSetup() {
   const editNames = app.querySelector("[data-action='edit-names']");
   if (editNames) {
     editNames.addEventListener("click", () => {
+      playTone("select");
       state.preview = null;
       state.previewTwo = null;
       state.player = null;
@@ -617,6 +653,7 @@ function bindSetup() {
 
 function decideNames() {
   ensureAudio("menu");
+  playTone("confirm");
   try {
     state.preview = createCharacter(app.querySelector("#name-one").value);
     state.player = state.preview;
@@ -645,11 +682,13 @@ function bindCommon() {
   const modal = app.querySelector("#help-modal");
   if (help && modal) {
     help.addEventListener("click", () => {
+      playTone("select");
       modal.hidden = false;
       modal.querySelector("[data-action='close-help']").focus();
     });
     modal.addEventListener("click", (event) => {
       if (event.target === modal || event.target.closest("[data-action='close-help']")) {
+        playTone("select");
         modal.hidden = true;
       }
     });
@@ -685,7 +724,7 @@ function helpModal() {
           <h3>お金と能力の種</h3>
           <p>戦闘後には勝っても負けてもお金が手に入ります。結果画面の能力の種屋で、HP、MP、TP、攻撃力、防御力、魔力、魔法防御、技術、素早さ、運を少しずつ伸ばせます。種で伸ばした能力も、記号つきの名前パターンに含まれます。</p>
           <h3>音について</h3>
-          <p>音はデフォルトでオンです。タイトル画面と戦闘画面では別のBGMが流れます。ブラウザの制限により、最初に「決定」や「戦いを始める」を押した後に再生されます。</p>
+          <p>音はデフォルトでオンです。タイトル画面に入った時点でBGMの再生を試み、ブラウザ側で止められた時だけ最初の操作で再開します。戦闘では別のBGMと効果音に切り替わります。</p>
         </div>
       </section>
     </div>
@@ -743,6 +782,7 @@ function statItem(label, value) {
 
 function startGame() {
   ensureAudio("battle");
+  playTone("confirm");
   try {
     if (!state.preview || (state.mode === "duel" && !state.previewTwo)) {
       decideNames();
@@ -780,6 +820,7 @@ function startBattle(player, enemy) {
     log: [],
     ended: false
   };
+  playTone("encounter");
   logLine(`${player.displayName}が現れた。レベル ${player.level}、${player.job.name}。`, "player");
   logLine(`${enemy.displayName}が立ちはだかった。レベル ${enemy.level}、${enemy.job.name}。`, "enemy");
   render();
@@ -787,7 +828,7 @@ function startBattle(player, enemy) {
 }
 
 function renderBattle() {
-  if (state.audioReady && state.audioOn) startMusic("battle");
+  if (state.audioOn) startMusic("battle");
   const battle = state.battle;
   const magic = availableMagic(battle.player);
   const techniques = availableTechniques(battle.player);
@@ -1149,7 +1190,7 @@ function performAction(actor, target, command, done) {
     if (ability.kind === "buff") {
       applyStatEffect(actor, ability);
       logLine(`${actor.displayName}の${ability.name}。${STAT_LABELS[ability.stat]}がしばらく上がった。`);
-      playTone("guard");
+      playTone("status");
       showEffect(actor === state.battle.player ? "player" : "enemy", "heal");
       showBattleText(actor === state.battle.player ? "player" : "enemy", `${STAT_LABELS[ability.stat]}↑`, "buff");
       afterBattleDelay(() => finishAction(done), 1050);
@@ -1159,7 +1200,7 @@ function performAction(actor, target, command, done) {
     if (ability.kind === "debuff") {
       applyStatEffect(target, ability);
       logLine(`${actor.displayName}の${ability.name}。${target.displayName}の${STAT_LABELS[ability.stat]}がしばらく下がった。`);
-      playTone("magic");
+      playTone("status");
       showEffect(target === state.battle.player ? "player" : "enemy", "spell");
       showBattleText(target === state.battle.player ? "player" : "enemy", `${STAT_LABELS[ability.stat]}↓`, "debuff");
       afterBattleDelay(() => finishAction(done), 1150);
@@ -1169,13 +1210,15 @@ function performAction(actor, target, command, done) {
     const result = calcDamage(actor, target, ability.kind, ability);
     if (result.missed) {
       logLine(`${actor.displayName}の${ability.name}。しかし${target.displayName}はかわした。`);
+      playTone("miss");
       showBattleText(target === state.battle.player ? "player" : "enemy", "ミス", "miss");
     } else {
       target.currentHp -= result.damage;
       logLine(`${actor.displayName}の${ability.name}。${result.critical ? "会心の一撃。 " : ""}${target.displayName}に${result.damage}のダメージ。`);
+      playTone(ability.kind === "magic" ? "magic" : "attack");
+      setTimeout(() => playTone("damage"), battleDelay(90));
       showBattleText(target === state.battle.player ? "player" : "enemy", `${result.damage}`, result.critical ? "critical" : "damage");
     }
-    playTone(ability.kind === "magic" ? "magic" : "attack");
     if (result.critical) screenShake();
     if (ability.kind === "technique") flashSprite(actor, "attack");
     showEffect(target === state.battle.player ? "player" : "enemy", ability.kind === "magic" ? "spell" : "slash");
@@ -1188,17 +1231,20 @@ function performAction(actor, target, command, done) {
   if (action === "ability") {
     const resource = command.ability.kind === "technique" ? "TP" : "MP";
     logLine(`${actor.displayName}は力を解き放とうとしたが、${resource}が足りない。`);
+    playTone("miss");
   }
   const result = calcDamage(actor, target, "attack");
   if (result.missed) {
     logLine(`${actor.displayName}の通常攻撃。しかし${target.displayName}は身をひるがえしてかわした。`);
+    playTone("miss");
     showBattleText(target === state.battle.player ? "player" : "enemy", "ミス", "miss");
   } else {
     target.currentHp -= result.damage;
     logLine(`${actor.displayName}の通常攻撃。${result.critical ? "会心の一撃。 " : "刃が走り、"}${target.displayName}に${result.damage}のダメージ。`);
+    playTone("attack");
+    setTimeout(() => playTone("damage"), battleDelay(90));
     showBattleText(target === state.battle.player ? "player" : "enemy", `${result.damage}`, result.critical ? "critical" : "damage");
   }
-  playTone("attack");
   if (result.critical) screenShake();
   flashSprite(actor, "attack");
   flashSprite(target, "hit");
@@ -1353,7 +1399,7 @@ function finishBattle(playerWon) {
 }
 
 function renderResult() {
-  if (state.audioReady && state.audioOn) startMusic("menu");
+  if (state.audioOn) startMusic("menu");
   const result = state.result;
   app.innerHTML = `
     <main class="shell">
@@ -1391,6 +1437,7 @@ function renderResult() {
   `;
   bindCommon();
   app.querySelector("[data-action='menu']").addEventListener("click", () => {
+    playTone("confirm");
     state.screen = "title";
     state.result = null;
     state.battle = null;
@@ -1399,24 +1446,28 @@ function renderResult() {
   const next = app.querySelector("[data-action='next']");
   if (next) {
     next.addEventListener("click", () => {
+      playTone("confirm");
       startBattle(cloneForBattle(state.player), cloneForBattle(STAGES[state.stageIndex]));
     });
   }
   const retry = app.querySelector("[data-action='retry']");
   if (retry) {
     retry.addEventListener("click", () => {
+      playTone("confirm");
       startBattle(cloneForBattle(state.player), cloneForBattle(STAGES[state.stageIndex]));
     });
   }
   const duelRetry = app.querySelector("[data-action='duel-retry']");
   if (duelRetry) {
     duelRetry.addEventListener("click", () => {
+      playTone("confirm");
       startBattle(cloneForBattle(state.player), cloneForBattle(state.second));
     });
   }
   const shop = app.querySelector("[data-action='shop']");
   if (shop) {
     shop.addEventListener("click", () => {
+      playTone("select");
       state.screen = "shop";
       render();
     });
@@ -1425,6 +1476,7 @@ function renderResult() {
   if (copy) {
     copy.addEventListener("click", async () => {
       await copyText(state.result.code);
+      playTone("confirm");
       copy.textContent = "コピー済み";
       setTimeout(() => {
         copy.textContent = "コピー";
@@ -1458,7 +1510,7 @@ function seedShopMarkup() {
 }
 
 function renderShop() {
-  if (state.audioReady && state.audioOn) startMusic("menu");
+  if (state.audioOn) startMusic("menu");
   app.innerHTML = `
     <main class="shell">
       <header class="topbar">
@@ -1495,6 +1547,7 @@ function renderShop() {
   bindCommon();
   bindResultNavigation();
   app.querySelector("[data-action='back-result']").addEventListener("click", () => {
+    playTone("select");
     state.screen = "result";
     render();
   });
@@ -1505,6 +1558,7 @@ function renderShop() {
   if (copy) {
     copy.addEventListener("click", async () => {
       await copyText(state.result.code);
+      playTone("confirm");
       copy.textContent = "コピー済み";
       setTimeout(() => {
         copy.textContent = "コピー";
@@ -1517,6 +1571,7 @@ function bindResultNavigation() {
   const menu = app.querySelector("[data-action='menu']");
   if (menu) {
     menu.addEventListener("click", () => {
+      playTone("confirm");
       state.screen = "title";
       state.result = null;
       state.battle = null;
@@ -1526,12 +1581,14 @@ function bindResultNavigation() {
   const next = app.querySelector("[data-action='next']");
   if (next) {
     next.addEventListener("click", () => {
+      playTone("confirm");
       startBattle(cloneForBattle(state.player), cloneForBattle(STAGES[state.stageIndex]));
     });
   }
   const retry = app.querySelector("[data-action='retry']");
   if (retry) {
     retry.addEventListener("click", () => {
+      playTone("confirm");
       startBattle(cloneForBattle(state.player), cloneForBattle(STAGES[state.stageIndex]));
     });
   }
@@ -1549,6 +1606,7 @@ function buySeed(key) {
   const price = seedPrice(item);
   if ((state.player.gold || 0) < price) {
     state.result.shopMessage = "お金が足りません。";
+    playTone("miss");
     render();
     return;
   }
@@ -1559,6 +1617,7 @@ function buySeed(key) {
   fullHeal(state.player);
   state.result.code = makeNamePattern(state.player);
   state.result.shopMessage = `${item.name}を使った。${STAT_LABELS[item.key]}が${item.gain}上がった。`;
+  playTone("shop");
   render();
 }
 
@@ -1692,13 +1751,13 @@ function ensureAudio(mode = state.screen === "battle" ? "battle" : "menu") {
   if (state.audio.state === "suspended") {
     state.audio.resume();
   }
-  startMusic(mode);
 }
 
 function toggleAudio() {
   state.audioOn = !state.audioOn;
   if (state.audioOn) {
     ensureAudio();
+    startMusic(currentMusicMode());
   } else {
     stopMusic();
   }
@@ -1706,16 +1765,20 @@ function toggleAudio() {
 }
 
 function startMusic(mode = "menu") {
-  if (!state.audioOn || !state.audio) return;
+  if (!state.audioOn) return;
   if (state.musicTrack && state.musicMode === mode && !state.musicTrack.paused) return;
   stopMusic();
   state.musicMode = mode;
   const track = new Audio(MUSIC_TRACKS[mode] || MUSIC_TRACKS.menu);
   track.loop = true;
+  track.autoplay = true;
+  track.preload = "auto";
+  track.playsInline = true;
   track.volume = MUSIC_VOLUMES[mode] || MUSIC_VOLUMES.menu;
   state.musicTrack = track;
   track.play().catch(() => {
     if (state.musicTrack === track) state.musicTrack = null;
+    armMusicRetry(mode);
   });
 }
 
@@ -1726,6 +1789,33 @@ function stopMusic() {
   }
   state.musicTrack = null;
   state.musicMode = null;
+}
+
+function currentMusicMode() {
+  return state.screen === "battle" ? "battle" : "menu";
+}
+
+function armMusicRetry(mode) {
+  if (state.musicRetryArmed) return;
+  state.musicRetryArmed = true;
+  const retry = () => {
+    state.musicRetryArmed = false;
+    document.removeEventListener("pointerdown", retry);
+    document.removeEventListener("keydown", retry);
+    if (state.audioOn) startMusic(mode || currentMusicMode());
+  };
+  document.addEventListener("pointerdown", retry, { once: true });
+  document.addEventListener("keydown", retry, { once: true });
+}
+
+function playSample(kind) {
+  const src = SFX_TRACKS[kind];
+  if (!state.audioOn || !src) return false;
+  const sample = new Audio(src);
+  sample.preload = "auto";
+  sample.volume = SFX_VOLUMES[kind] || 0.42;
+  sample.play().catch(() => {});
+  return true;
 }
 
 function tone(freq, duration, type, volume) {
@@ -1745,6 +1835,7 @@ function tone(freq, duration, type, volume) {
 
 function playTone(kind) {
   if (!state.audioOn) return;
+  if (playSample(kind)) return;
   ensureAudio(state.screen === "battle" ? "battle" : "menu");
   if (!state.audioReady) return;
   if (kind === "attack") {
