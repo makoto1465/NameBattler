@@ -92,6 +92,10 @@ const SEED_SHOP = [
 
 const BATTLE_SPEEDS = [0.75, 1, 1.5, 2];
 const BATTLE_SPEED_BASE = 0.75;
+const MUSIC_TRACKS = {
+  menu: "assets/audio/menu.wav",
+  battle: "assets/audio/battle.wav"
+};
 
 const STAGES = STAGE_LEVELS.map((level, index) => makeEnemy(
   STAGE_NAMES[index],
@@ -120,7 +124,7 @@ const state = {
   audioOn: true,
   audioReady: false,
   audio: null,
-  musicTimer: null,
+  musicTrack: null,
   musicMode: null
 };
 
@@ -1699,35 +1703,24 @@ function toggleAudio() {
 
 function startMusic(mode = "menu") {
   if (!state.audioOn || !state.audio) return;
-  if (state.musicTimer && state.musicMode === mode) return;
+  if (state.musicTrack && state.musicMode === mode && !state.musicTrack.paused) return;
   stopMusic();
   state.musicMode = mode;
-  let step = 0;
-  state.musicTimer = setInterval(() => {
-    if (!state.audioOn || !state.audio) {
-      stopMusic();
-      return;
-    }
-    if (mode === "battle") {
-      const bass = [82.41, 82.41, 110, 82.41, 123.47, 110, 98, 73.42];
-      const lead = [329.63, 392, 440, 493.88, 440, 392, 329.63, 293.66];
-      tone(bass[step % bass.length], 0.13, "sawtooth", 0.045);
-      if (step % 2 === 0) tone(lead[step % lead.length], 0.08, "square", 0.032);
-      if (step % 4 === 0) tone(55, 0.08, "triangle", 0.07);
-      if (step % 4 === 2) tone(1760, 0.025, "square", 0.018);
-    } else {
-      const notes = [196, 246.94, 293.66, 329.63, 392, 329.63, 293.66, 246.94];
-      const note = notes[step % notes.length];
-      tone(note, 0.16, "triangle", 0.026);
-      if (step % 4 === 0) tone(note / 2, 0.24, "sine", 0.018);
-    }
-    step += 1;
-  }, mode === "battle" ? 150 : 260);
+  const track = new Audio(MUSIC_TRACKS[mode] || MUSIC_TRACKS.menu);
+  track.loop = true;
+  track.volume = mode === "battle" ? 0.5 : 0.42;
+  state.musicTrack = track;
+  track.play().catch(() => {
+    if (state.musicTrack === track) state.musicTrack = null;
+  });
 }
 
 function stopMusic() {
-  if (state.musicTimer) clearInterval(state.musicTimer);
-  state.musicTimer = null;
+  if (state.musicTrack) {
+    state.musicTrack.pause();
+    state.musicTrack.currentTime = 0;
+  }
+  state.musicTrack = null;
   state.musicMode = null;
 }
 
