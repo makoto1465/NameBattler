@@ -984,32 +984,34 @@ select:focus {
 }
 
 .log p.latest {
+  --log-accent: var(--blue);
+  --log-glow: rgba(114, 214, 255, 0.22);
   position: sticky;
   top: 0;
   z-index: 1;
   margin: 0 0 0.7rem;
-  border: 1px solid rgba(248, 214, 126, 0.5);
-  border-left: 4px solid var(--gold);
+  border: 1px solid color-mix(in srgb, var(--log-accent) 62%, transparent);
+  border-left: 4px solid var(--log-accent);
   border-radius: 6px;
-  background: linear-gradient(90deg, rgba(248, 214, 126, 0.22), rgba(114, 214, 255, 0.1));
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28), 0 0 24px rgba(248, 214, 126, 0.12);
+  background: linear-gradient(90deg, var(--log-glow), rgba(255, 255, 255, 0.04));
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28), 0 0 24px var(--log-glow);
   padding: 0.65rem 0.75rem;
   color: #fff8df;
   font-weight: 800;
-  animation: logLatestPulse 760ms ease both;
 }
 
-.log p.latest::before {
-  content: "最新";
-  display: inline-grid;
-  place-items: center;
-  min-width: 2.5rem;
-  margin-right: 0.55rem;
-  border-radius: 999px;
-  background: rgba(248, 214, 126, 0.18);
-  color: var(--gold);
-  font-size: 0.72rem;
-  line-height: 1.45;
+.log p.latest.side-player {
+  --log-accent: #72d6ff;
+  --log-glow: rgba(114, 214, 255, 0.22);
+}
+
+.log p.latest.side-enemy {
+  --log-accent: #ff5573;
+  --log-glow: rgba(255, 85, 115, 0.22);
+}
+
+.log p.latest.flash {
+  animation: logLatestPulse 520ms cubic-bezier(.18, .84, .32, 1.2) both;
 }
 
 .log p:not(.latest) {

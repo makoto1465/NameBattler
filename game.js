@@ -772,8 +772,8 @@ function startBattle(player, enemy) {
     log: [],
     ended: false
   };
-  logLine(`${player.displayName}が現れた。レベル ${player.level}、${player.job.name}。`);
-  logLine(`${enemy.displayName}が立ちはだかった。レベル ${enemy.level}、${enemy.job.name}。`);
+  logLine(`${player.displayName}が現れた。レベル ${player.level}、${player.job.name}。`, "player");
+  logLine(`${enemy.displayName}が立ちはだかった。レベル ${enemy.level}、${enemy.job.name}。`, "enemy");
   render();
   if (state.battle.turn === "enemy") afterBattleDelay(enemyTurn, 900);
 }
@@ -825,7 +825,7 @@ function renderBattle() {
             <button data-command="wait" ${commandDisabled()}>様子を見る</button>
           </div>
         </div>
-        <div class="log">${battle.log.map((line, index) => `<p class="${index === 0 ? "latest" : ""}">${escapeHtml(line)}</p>`).join("")}</div>
+        <div class="log">${battle.log.map((entry, index) => logEntryMarkup(entry, index)).join("")}</div>
         <div class="panel skill-panel">
           <h2>スキル効果</h2>
           <p><strong>${battle.player.displayName}</strong>：魔法 ${magic.length}種類 / 特技 ${techniques.length}種類</p>
@@ -837,12 +837,23 @@ function renderBattle() {
     </main>
   `;
   bindBattle();
+  if (battle.log[0]?.flash) battle.log[0].flash = false;
   if (state.auto && !state.busy && !battle.ended) scheduleAuto();
 }
 
 function battleSideLabel(side) {
   if (state.mode === "duel") return side === "player" ? "1P" : "2P";
   return side === "player" ? "あなた" : "敵";
+}
+
+function logEntryMarkup(entry, index) {
+  const normalized = typeof entry === "string" ? { text: entry, side: "player", flash: false } : entry;
+  const classes = [
+    index === 0 ? "latest" : "",
+    normalized.side === "enemy" ? "side-enemy" : "side-player",
+    normalized.flash ? "flash" : ""
+  ].filter(Boolean).join(" ");
+  return `<p class="${classes}">${escapeHtml(normalized.text)}</p>`;
 }
 
 function commandDisabled() {
@@ -978,8 +989,8 @@ function afterBattleDelay(callback, ms) {
   setTimeout(callback, battleDelay(ms));
 }
 
-function logLine(text) {
-  state.battle.log.unshift(text);
+function logLine(text, side = state.battle.turn) {
+  state.battle.log.unshift({ text, side, flash: true });
   state.battle.log = state.battle.log.slice(0, 12);
 }
 
