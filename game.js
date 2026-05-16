@@ -93,8 +93,12 @@ const SEED_SHOP = [
 const BATTLE_SPEEDS = [0.75, 1, 1.5, 2];
 const BATTLE_SPEED_BASE = 0.75;
 const MUSIC_TRACKS = {
-  menu: "assets/audio/menu.wav",
-  battle: "assets/audio/battle.wav"
+  menu: "assets/audio/menu.mp3",
+  battle: "assets/audio/battle.mp3"
+};
+const MUSIC_VOLUMES = {
+  menu: 0.18,
+  battle: 0.22
 };
 
 const STAGES = STAGE_LEVELS.map((level, index) => makeEnemy(
@@ -1708,7 +1712,7 @@ function startMusic(mode = "menu") {
   state.musicMode = mode;
   const track = new Audio(MUSIC_TRACKS[mode] || MUSIC_TRACKS.menu);
   track.loop = true;
-  track.volume = mode === "battle" ? 0.5 : 0.42;
+  track.volume = MUSIC_VOLUMES[mode] || MUSIC_VOLUMES.menu;
   state.musicTrack = track;
   track.play().catch(() => {
     if (state.musicTrack === track) state.musicTrack = null;
