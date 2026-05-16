@@ -130,6 +130,7 @@ const SFX_VOLUMES = {
   shop: 0.42,
   down: 0.46
 };
+const AUDIO_PREFS_KEY = "namebattler-audio-pref-v1";
 
 const STAGES = STAGE_LEVELS.map((level, index) => makeEnemy(
   STAGE_NAMES[index],
@@ -160,7 +161,8 @@ const state = {
   audio: null,
   musicTrack: null,
   musicMode: null,
-  musicRetryArmed: false
+  musicRetryArmed: false,
+  audioUnlocked: false
 };
 
 function hashText(text) {
@@ -1753,6 +1755,25 @@ function ensureAudio(mode = state.screen === "battle" ? "battle" : "menu") {
   }
 }
 
+function loadAudioPrefs() {
+  try {
+    const raw = localStorage.getItem(AUDIO_PREFS_KEY);
+    if (!raw) return;
+    const prefs = JSON.parse(raw);
+    if (typeof prefs.audioOn === "boolean") state.audioOn = prefs.audioOn;
+    if (prefs.audioUnlocked) state.audioUnlocked = true;
+  } catch {}
+}
+
+function saveAudioPrefs() {
+  try {
+    localStorage.setItem(AUDIO_PREFS_KEY, JSON.stringify({
+      audioOn: state.audioOn,
+      audioUnlocked: state.audioUnlocked
+    }));
+  } catch {}
+}
+
 function toggleAudio() {
   state.audioOn = !state.audioOn;
   if (state.audioOn) {
@@ -1761,6 +1782,7 @@ function toggleAudio() {
   } else {
     stopMusic();
   }
+  saveAudioPrefs();
   render();
 }
 
@@ -1776,7 +1798,10 @@ function startMusic(mode = "menu") {
   track.playsInline = true;
   track.volume = MUSIC_VOLUMES[mode] || MUSIC_VOLUMES.menu;
   state.musicTrack = track;
-  track.play().catch(() => {
+  track.play().then(() => {
+    state.audioUnlocked = true;
+    saveAudioPrefs();
+  }).catch(() => {
     if (state.musicTrack === track) state.musicTrack = null;
     armMusicRetry(mode);
   });
@@ -1802,7 +1827,12 @@ function armMusicRetry(mode) {
     state.musicRetryArmed = false;
     document.removeEventListener("pointerdown", retry);
     document.removeEventListener("keydown", retry);
-    if (state.audioOn) startMusic(mode || currentMusicMode());
+    state.audioUnlocked = true;
+    saveAudioPrefs();
+    if (state.audioOn) {
+      ensureAudio(mode || currentMusicMode());
+      startMusic(mode || currentMusicMode());
+    }
   };
   document.addEventListener("pointerdown", retry, { once: true });
   document.addEventListener("keydown", retry, { once: true });
@@ -1814,7 +1844,10 @@ function playSample(kind) {
   const sample = new Audio(src);
   sample.preload = "auto";
   sample.volume = SFX_VOLUMES[kind] || 0.42;
-  sample.play().catch(() => {});
+  sample.play().then(() => {
+    state.audioUnlocked = true;
+    saveAudioPrefs();
+  }).catch(() => {});
   return true;
 }
 
@@ -1881,4 +1914,5 @@ function escapeAttr(value) {
   return escapeHtml(value);
 }
 
+loadAudioPrefs();
 render();

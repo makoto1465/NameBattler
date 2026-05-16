@@ -409,8 +409,11 @@ select:focus {
   border: 1px solid rgba(248, 214, 126, 0.22);
   border-radius: 8px;
   background:
-    linear-gradient(180deg, rgba(22, 24, 44, 0.92), rgba(12, 10, 18, 0.95) 58%, rgba(21, 18, 13, 0.98) 58%),
-    repeating-linear-gradient(90deg, rgba(255,255,255,0.03) 0 1px, transparent 1px 58px);
+    linear-gradient(180deg, rgba(7, 10, 22, 0.16), rgba(7, 10, 22, 0.42)),
+    url("assets/backgrounds/battle-retro.svg");
+  background-size: cover;
+  background-position: center;
+  image-rendering: pixelated;
 }
 
 .stage::before {
@@ -418,8 +421,8 @@ select:focus {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(90deg, rgba(114, 214, 255, 0.08), transparent 32%, transparent 68%, rgba(255, 85, 115, 0.08)),
-    radial-gradient(circle at 50% 58%, rgba(248, 214, 126, 0.16), transparent 16rem);
+    linear-gradient(90deg, rgba(114, 214, 255, 0.06), transparent 28%, transparent 72%, rgba(255, 85, 115, 0.06)),
+    radial-gradient(circle at 50% 62%, rgba(248, 214, 126, 0.08), transparent 18rem);
   pointer-events: none;
 }
 
