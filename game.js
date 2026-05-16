@@ -204,12 +204,13 @@ function makeNamePattern(character) {
 function rareLevelFromName(name) {
   const baseRoll = unitHash(name, "NameBattler-level-v3");
   const omenRoll = unitHash(name, "NameBattler-level-omen-v3");
-  const base = baseRoll < 0.5
-    ? Math.round(1 + 19 * Math.pow(baseRoll / 0.5, 0.34))
-    : Math.round(20 + 79 * Math.pow((baseRoll - 0.5) / 0.5, 2.2));
-  if (omenRoll > 0.992) return clamp(base + 38, 1, 99);
-  if (omenRoll > 0.972) return clamp(base + 18, 1, 99);
-  if (omenRoll < 0.026) return clamp(base - 5, 1, 99);
+  const centered = Math.abs(baseRoll - 0.5) * 2;
+  const direction = baseRoll >= 0.5 ? 1 : -1;
+  const distance = Math.pow(centered, 2.75);
+  const base = Math.round(50 + direction * distance * 49);
+  if (omenRoll > 0.9988) return clamp(base + 28, 1, 99);
+  if (omenRoll > 0.9935) return clamp(base + 14, 1, 99);
+  if (omenRoll < 0.0065) return clamp(base - 14, 1, 99);
   return clamp(base, 1, 99);
 }
 
@@ -409,6 +410,10 @@ function render() {
     renderResult();
     return;
   }
+  if (state.screen === "shop") {
+    renderShop();
+    return;
+  }
   renderSetup();
 }
 
@@ -487,6 +492,7 @@ function renderSetup() {
   const nameOneValue = document.querySelector("#name-one")?.value || "";
   const nameTwoValue = document.querySelector("#name-two")?.value || "";
   const hasDecision = Boolean(state.preview && (state.mode === "solo" || state.previewTwo));
+  const duelReady = state.mode === "duel" && hasDecision;
   app.innerHTML = `
     <main class="shell">
       <header class="topbar">
@@ -500,6 +506,19 @@ function renderSetup() {
           <button data-action="back-mode">モード選択へ</button>
         </div>
       </header>
+      ${duelReady ? `
+        <section class="panel duel-ready">
+          <h2>2人のキャラクター</h2>
+          <div class="duel-preview-grid">
+            ${characterPreview(state.preview)}
+            ${characterPreview(state.previewTwo)}
+          </div>
+          <div class="start-row duel-actions">
+            <button class="primary battle-start-button" data-action="start">戦いを始める</button>
+            <button data-action="edit-names">名前を入れ直す</button>
+          </div>
+        </section>
+      ` : `
       <section class="menu">
         <div class="panel">
           <h2>${state.mode === "solo" ? "1人用の名前入力" : "2人用の名前入力"}</h2>
@@ -539,6 +558,7 @@ function renderSetup() {
           ${state.previewTwo ? characterPreview(state.previewTwo) : ""}
         </aside>
       </section>
+      `}
       ${helpModal()}
     </main>
   `;
@@ -570,9 +590,21 @@ function bindSetup() {
       state.selectedStage = Number(stageSelect.value);
     });
   }
-  app.querySelector("[data-action='decide']").addEventListener("click", decideNames);
+  const decide = app.querySelector("[data-action='decide']");
+  if (decide) decide.addEventListener("click", decideNames);
   const start = app.querySelector("[data-action='start']");
   if (start) start.addEventListener("click", startGame);
+  const editNames = app.querySelector("[data-action='edit-names']");
+  if (editNames) {
+    editNames.addEventListener("click", () => {
+      state.preview = null;
+      state.previewTwo = null;
+      state.player = null;
+      state.second = null;
+      state.error = "";
+      render();
+    });
+  }
 }
 
 function decideNames() {
@@ -1314,7 +1346,6 @@ function renderResult() {
         <h2>${result.title}</h2>
         ${result.levelUp ? levelUpMarkup(result.levelUp) : ""}
         ${result.lines.map((line) => `<p>${escapeHtml(line)}</p>`).join("")}
-        ${state.mode === "solo" && state.player ? seedShopMarkup() : ""}
         ${result.code ? `
           <div>
             <div class="small-note">この強さになる名前パターン</div>
@@ -1326,6 +1357,7 @@ function renderResult() {
           ${result.next === "next" ? `<button class="primary" data-action="next">次のステージへ</button>` : ""}
           ${result.next === "retry" ? `<button class="primary" data-action="retry">再戦する</button>` : ""}
           ${result.next === "duelRetry" ? `<button class="primary" data-action="duel-retry">再戦する</button>` : ""}
+          ${state.mode === "solo" && state.player ? `<button data-action="shop">ショップへ</button>` : ""}
           <button data-action="menu">タイトルへ戻る</button>
         </div>
       </section>
@@ -1357,6 +1389,13 @@ function renderResult() {
       startBattle(cloneForBattle(state.player), cloneForBattle(state.second));
     });
   }
+  const shop = app.querySelector("[data-action='shop']");
+  if (shop) {
+    shop.addEventListener("click", () => {
+      state.screen = "shop";
+      render();
+    });
+  }
   const copy = app.querySelector("[data-action='copy-code']");
   if (copy) {
     copy.addEventListener("click", async () => {
@@ -1367,9 +1406,6 @@ function renderResult() {
       }, 1200);
     });
   }
-  app.querySelectorAll("[data-seed]").forEach((button) => {
-    button.addEventListener("click", () => buySeed(button.dataset.seed));
-  });
 }
 
 function seedShopMarkup() {
@@ -1385,10 +1421,10 @@ function seedShopMarkup() {
       ${state.result.shopMessage ? `<p class="shop-message">${escapeHtml(state.result.shopMessage)}</p>` : ""}
       <div class="seed-grid">
         ${SEED_SHOP.map((item) => `
-          <button data-seed="${item.key}" ${(state.player.gold || 0) < item.price ? "disabled" : ""}>
+          <button data-seed="${item.key}" ${(state.player.gold || 0) < seedPrice(item) ? "disabled" : ""}>
             <strong>${item.name}</strong>
             <span>${item.description}</span>
-            <em>${item.price}</em>
+            <em>${seedPrice(item)} G</em>
           </button>
         `).join("")}
       </div>
@@ -1396,19 +1432,107 @@ function seedShopMarkup() {
   `;
 }
 
+function renderShop() {
+  if (state.audioReady && state.audioOn) startMusic("menu");
+  app.innerHTML = `
+    <main class="shell">
+      <header class="topbar">
+        <div>
+          <h1 class="title">NameBattler</h1>
+          <p class="subtitle">能力の種屋</p>
+        </div>
+        <div class="top-actions">
+          <button class="icon-button" data-action="help" aria-label="遊び方を開く" title="遊び方">?</button>
+          ${soundButton()}
+        </div>
+      </header>
+      <section class="panel result shop-screen">
+        <h2>ショップ</h2>
+        ${state.player ? characterPreview(state.player) : ""}
+        ${seedShopMarkup()}
+        ${state.result?.code ? `
+          <div>
+            <div class="small-note">この強さになる名前パターン</div>
+            <div class="code-box">${escapeHtml(state.result.code)}</div>
+            <button data-action="copy-code">コピー</button>
+          </div>
+        ` : ""}
+        <div class="start-row">
+          ${state.result?.next === "next" ? `<button class="primary" data-action="next">次のステージへ</button>` : ""}
+          ${state.result?.next === "retry" ? `<button class="primary" data-action="retry">再戦する</button>` : ""}
+          <button data-action="back-result">結果へ戻る</button>
+          <button data-action="menu">タイトルへ戻る</button>
+        </div>
+      </section>
+      ${helpModal()}
+    </main>
+  `;
+  bindCommon();
+  bindResultNavigation();
+  app.querySelector("[data-action='back-result']").addEventListener("click", () => {
+    state.screen = "result";
+    render();
+  });
+  app.querySelectorAll("[data-seed]").forEach((button) => {
+    button.addEventListener("click", () => buySeed(button.dataset.seed));
+  });
+  const copy = app.querySelector("[data-action='copy-code']");
+  if (copy) {
+    copy.addEventListener("click", async () => {
+      await copyText(state.result.code);
+      copy.textContent = "コピー済み";
+      setTimeout(() => {
+        copy.textContent = "コピー";
+      }, 1200);
+    });
+  }
+}
+
+function bindResultNavigation() {
+  const menu = app.querySelector("[data-action='menu']");
+  if (menu) {
+    menu.addEventListener("click", () => {
+      state.screen = "title";
+      state.result = null;
+      state.battle = null;
+      render();
+    });
+  }
+  const next = app.querySelector("[data-action='next']");
+  if (next) {
+    next.addEventListener("click", () => {
+      startBattle(cloneForBattle(state.player), cloneForBattle(STAGES[state.stageIndex]));
+    });
+  }
+  const retry = app.querySelector("[data-action='retry']");
+  if (retry) {
+    retry.addEventListener("click", () => {
+      startBattle(cloneForBattle(state.player), cloneForBattle(STAGES[state.stageIndex]));
+    });
+  }
+}
+
+function seedPrice(item) {
+  const level = clamp(state.player?.level || 1, 1, 999);
+  const levelMultiplier = 1 + (level - 1) * 0.035 + Math.floor((level - 1) / 10) * 0.08;
+  return Math.round(item.price * levelMultiplier);
+}
+
 function buySeed(key) {
   const item = SEED_SHOP.find((seed) => seed.key === key);
   if (!item || !state.player) return;
-  if ((state.player.gold || 0) < item.price) {
+  const price = seedPrice(item);
+  if ((state.player.gold || 0) < price) {
     state.result.shopMessage = "お金が足りません。";
     render();
     return;
   }
-  state.player.gold -= item.price;
+  state.player.gold -= price;
   state.player.seedBoosts ||= {};
   state.player.seedBoosts[item.key] = (state.player.seedBoosts[item.key] || 0) + item.gain;
   state.player.stats[item.key] += item.gain;
   fullHeal(state.player);
+  state.result.code = makeNamePattern(state.player);
   state.result.shopMessage = `${item.name}を使った。${STAT_LABELS[item.key]}が${item.gain}上がった。`;
   render();
 }

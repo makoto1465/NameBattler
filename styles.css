@@ -325,6 +325,27 @@ select:focus {
   gap: 10px;
 }
 
+.duel-ready {
+  display: grid;
+  gap: 14px;
+}
+
+.duel-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  align-items: start;
+}
+
+.duel-actions {
+  justify-content: center;
+  padding-top: 6px;
+}
+
+.duel-actions .battle-start-button {
+  width: min(340px, 100%);
+}
+
 .preview-card {
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
@@ -1089,6 +1110,11 @@ select:focus {
   padding: 12px;
 }
 
+.shop-screen {
+  display: grid;
+  gap: 14px;
+}
+
 .seed-shop-head {
   display: grid;
   gap: 4px;
@@ -1349,6 +1375,7 @@ select:focus {
 
   .menu,
   .mode-select,
+  .duel-preview-grid,
   .hud {
     grid-template-columns: 1fr;
   }
