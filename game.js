@@ -27,15 +27,15 @@ const JOBS = [
   { name: "盗賊", role: "運と技巧", note: "技術と運で崩す職業。TPが高く、高レベルで奇襲特技が強くなる。", hp: 0.9, mp: 0.74, tp: 1.38, attack: 0.96, defense: 0.8, magic: 0.74, magicDefense: 0.86, technique: 1.32, speed: 1.34, luck: 1.48 }
 ];
 
-const JOB_SPRITE_SHEETS = {
-  "戦士": "assets/sprites/jobs/warrior.png",
-  "魔法使い": "assets/sprites/jobs/mage.png",
-  "僧侶": "assets/sprites/jobs/priest.png",
-  "忍者": "assets/sprites/jobs/ninja.png",
-  "暗黒騎士": "assets/sprites/jobs/dark-knight.png",
-  "武闘家": "assets/sprites/jobs/martial-artist.png",
-  "賢者": "assets/sprites/jobs/sage.png",
-  "盗賊": "assets/sprites/jobs/thief.png"
+const JOB_SPRITE_IDS = {
+  "戦士": "warrior",
+  "魔法使い": "mage",
+  "僧侶": "priest",
+  "忍者": "ninja",
+  "暗黒騎士": "dark-knight",
+  "武闘家": "martial-artist",
+  "賢者": "sage",
+  "盗賊": "thief"
 };
 
 const MAGIC_BOOK = [
@@ -928,7 +928,10 @@ function fighterMarkup(character, side) {
   const hpRate = Math.max(0, character.currentHp / character.stats.hp) * 100;
   const mpRate = Math.max(0, character.currentMp / character.stats.mp) * 100;
   const tpRate = Math.max(0, character.currentTp / character.stats.tp) * 100;
-  const spriteSheet = JOB_SPRITE_SHEETS[character.job.name] || JOB_SPRITE_SHEETS["戦士"];
+  const spriteId = JOB_SPRITE_IDS[character.job.name] || JOB_SPRITE_IDS["戦士"];
+  const spriteIdle = `assets/sprites/jobs/frames/${spriteId}-idle.png`;
+  const spriteAttack = `assets/sprites/jobs/frames/${spriteId}-attack.png`;
+  const spriteCast = `assets/sprites/jobs/frames/${spriteId}-cast.png`;
   return `
     <div class="side ${side}">
       <div class="nameplate">
@@ -944,8 +947,8 @@ function fighterMarkup(character, side) {
       </div>
       <div class="sprite-wrap">
         <div class="shadow"></div>
-        <div class="sprite job-sprite" data-sprite="${side}" style="--sprite-main:${character.tint};--sprite-dark:${character.dark};--sprite-aura:${character.aura};--job-sheet:url('${spriteSheet}')">
-          <img class="sprite-loader" src="${spriteSheet}" alt="" aria-hidden="true" onload="this.parentElement.classList.add('loaded')" onerror="this.parentElement.classList.add('missing')">
+        <div class="sprite job-sprite" data-sprite="${side}" style="--sprite-main:${character.tint};--sprite-dark:${character.dark};--sprite-aura:${character.aura};--job-idle:url('${spriteIdle}');--job-attack:url('${spriteAttack}');--job-cast:url('${spriteCast}')">
+          <img class="sprite-loader" src="${spriteIdle}" alt="" aria-hidden="true" onload="this.parentElement.classList.add('loaded')" onerror="this.parentElement.classList.add('missing')">
           <div class="job-sheet"></div>
           <div class="aura"></div>
           <div class="head"></div>

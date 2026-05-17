@@ -579,8 +579,8 @@ select:focus {
 }
 
 .sprite.job-sprite {
-  width: 150px;
-  height: 160px;
+  width: 170px;
+  height: 170px;
 }
 
 .sprite.job-sprite .sprite-loader {
@@ -596,14 +596,14 @@ select:focus {
   position: absolute;
   left: 50%;
   bottom: 0;
-  width: 150px;
-  height: 160px;
+  width: 170px;
+  height: 170px;
   display: none;
   transform: translateX(-50%);
-  background-image: var(--job-sheet);
+  background-image: var(--job-idle);
   background-repeat: no-repeat;
-  background-size: 600% 800%;
-  background-position: 0% 0%;
+  background-size: contain;
+  background-position: center bottom;
   image-rendering: pixelated;
 }
 
@@ -615,7 +615,8 @@ select:focus {
 .sprite.job-sprite.loaded .body,
 .sprite.job-sprite.loaded .arm,
 .sprite.job-sprite.loaded .leg,
-.sprite.job-sprite.loaded .weapon {
+.sprite.job-sprite.loaded .weapon,
+.sprite.job-sprite.loaded .aura {
   display: none;
 }
 
@@ -732,15 +733,15 @@ select:focus {
 }
 
 .sprite.job-sprite.attack .job-sheet {
-  background-position: 60% 28.5714%;
+  background-image: var(--job-attack);
 }
 
 .sprite.job-sprite.cast .job-sheet {
-  background-position: 40% 42.8571%;
+  background-image: var(--job-cast);
 }
 
 .sprite.job-sprite.hit .job-sheet {
-  background-position: 0% 85.7143%;
+  background-image: var(--job-idle);
 }
 
 .enemy .sprite.hit {
@@ -1532,13 +1533,13 @@ select:focus {
   }
 
   .sprite.job-sprite {
-    width: 128px;
-    height: 140px;
+    width: 132px;
+    height: 132px;
   }
 
   .sprite.job-sprite .job-sheet {
-    width: 128px;
-    height: 140px;
+    width: 132px;
+    height: 132px;
   }
 
   .head {
