@@ -835,6 +835,7 @@ function renderBattle() {
   const magic = availableMagic(battle.player);
   const techniques = availableTechniques(battle.player);
   const turnLabel = battle.turn === "player" ? battleSideLabel("player") : battleSideLabel("enemy");
+  const latestLog = battle.log[0] ? logEntryMarkup(battle.log[0], 0) : "";
   app.innerHTML = `
     <main class="shell battle">
       <header class="topbar">
@@ -861,6 +862,7 @@ function renderBattle() {
           ${fighterMarkup(battle.enemy, "enemy")}
         </div>
         <div class="effect-layer"></div>
+        <div class="stage-message">${latestLog}</div>
       </section>
       <section class="hud">
         <div class="panel commands">
@@ -876,7 +878,6 @@ function renderBattle() {
             <button data-command="wait" ${commandDisabled()}>様子を見る</button>
           </div>
         </div>
-        <div class="log">${battle.log.map((entry, index) => logEntryMarkup(entry, index)).join("")}</div>
         <div class="panel skill-panel">
           <h2>スキル効果</h2>
           <p><strong>${battle.player.displayName}</strong>：魔法 ${magic.length}種類 / 特技 ${techniques.length}種類</p>
