@@ -443,10 +443,9 @@ select:focus {
 
 .fighters {
   position: absolute;
-  inset: 70px 20px 96px;
+  inset: 70px 20px 78px;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  align-items: end;
   gap: 18px;
   z-index: 2;
 }
@@ -471,14 +470,16 @@ select:focus {
 
 .side {
   min-width: 0;
-  display: grid;
-  grid-template-rows: auto minmax(230px, 1fr);
-  align-content: space-between;
-  gap: 12px;
+  position: relative;
+  min-height: 100%;
 }
 
 .side.enemy {
   justify-items: end;
+}
+
+.side.enemy .nameplate {
+  margin-left: auto;
 }
 
 .nameplate {
@@ -564,9 +565,16 @@ select:focus {
 .sprite-wrap {
   width: min(260px, 42vw);
   height: 240px;
+  position: absolute;
+  left: 20px;
+  bottom: 0;
   display: grid;
   place-items: end center;
-  position: relative;
+}
+
+.side.enemy .sprite-wrap {
+  right: 20px;
+  left: auto;
 }
 
 .sprite {
@@ -1500,7 +1508,7 @@ select:focus {
   }
 
   .fighters {
-    inset: 128px 10px 86px;
+    inset: 128px 10px 78px;
     gap: 8px;
   }
 
@@ -1509,8 +1517,13 @@ select:focus {
   }
 
   .sprite-wrap {
-    width: 100%;
+    width: min(180px, 42vw);
     height: 210px;
+    left: 0;
+  }
+
+  .side.enemy .sprite-wrap {
+    right: 0;
   }
 
   .sprite {

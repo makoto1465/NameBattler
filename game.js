@@ -171,6 +171,7 @@ const state = {
   audioReady: false,
   audio: null,
   musicTrack: null,
+  musicTracks: new Set(),
   musicMode: null,
   musicRetryArmed: false,
   audioUnlocked: false
@@ -1805,6 +1806,7 @@ function startMusic(mode = "menu") {
   stopMusic();
   state.musicMode = mode;
   const track = new Audio(MUSIC_TRACKS[mode] || MUSIC_TRACKS.menu);
+  state.musicTracks.add(track);
   track.loop = true;
   track.autoplay = true;
   track.preload = "auto";
@@ -1815,16 +1817,18 @@ function startMusic(mode = "menu") {
     state.audioUnlocked = true;
     saveAudioPrefs();
   }).catch(() => {
+    state.musicTracks.delete(track);
     if (state.musicTrack === track) state.musicTrack = null;
     armMusicRetry(mode);
   });
 }
 
 function stopMusic() {
-  if (state.musicTrack) {
-    state.musicTrack.pause();
-    state.musicTrack.currentTime = 0;
-  }
+  state.musicTracks.forEach((track) => {
+    track.pause();
+    track.currentTime = 0;
+  });
+  state.musicTracks.clear();
   state.musicTrack = null;
   state.musicMode = null;
 }
@@ -1843,8 +1847,9 @@ function armMusicRetry(mode) {
     state.audioUnlocked = true;
     saveAudioPrefs();
     if (state.audioOn) {
-      ensureAudio(mode || currentMusicMode());
-      startMusic(mode || currentMusicMode());
+      const nextMode = currentMusicMode();
+      ensureAudio(nextMode);
+      startMusic(nextMode);
     }
   };
   document.addEventListener("pointerdown", retry, { once: true });
