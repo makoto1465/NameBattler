@@ -706,12 +706,16 @@ select:focus {
   animation: attackRight 620ms ease both;
 }
 
+.sprite.cast {
+  animation: castPose 760ms ease both;
+}
+
 .sprite.job-sprite.attack .job-sheet {
-  background-image: var(--job-idle);
+  background-image: var(--job-attack);
 }
 
 .sprite.job-sprite.cast .job-sheet {
-  background-image: var(--job-idle);
+  background-image: var(--job-cast);
 }
 
 .sprite.job-sprite.hit .job-sheet {
@@ -724,6 +728,10 @@ select:focus {
 
 .enemy .sprite.attack {
   animation: attackLeft 620ms ease both;
+}
+
+.enemy .sprite.cast {
+  animation: enemyCastPose 760ms ease both;
 }
 
 .effect-layer {
@@ -1358,14 +1366,26 @@ select:focus {
 
 @keyframes attackRight {
   0%, 100% { transform: translateX(0); }
-  42% { transform: translateX(min(34vw, 430px)) scale(1.02); }
-  58% { transform: translateX(min(34vw, 430px)) scale(1.02); }
+  32% { transform: translateX(26px) scale(1.04); }
+  62% { transform: translateX(18px) scale(1.02); }
 }
 
 @keyframes attackLeft {
   0%, 100% { transform: scaleX(-1) translateX(0); }
-  42% { transform: scaleX(-1) translateX(min(34vw, 430px)) scale(1.02); }
-  58% { transform: scaleX(-1) translateX(min(34vw, 430px)) scale(1.02); }
+  32% { transform: scaleX(-1) translateX(26px) scale(1.04); }
+  62% { transform: scaleX(-1) translateX(18px) scale(1.02); }
+}
+
+@keyframes castPose {
+  0%, 100% { transform: translateX(0) scale(1); filter: brightness(1); }
+  36% { transform: translateX(0) scale(1.04); filter: brightness(1.35); }
+  68% { transform: translateX(0) scale(1.02); filter: brightness(1.12); }
+}
+
+@keyframes enemyCastPose {
+  0%, 100% { transform: scaleX(-1) translateX(0) scale(1); filter: brightness(1); }
+  36% { transform: scaleX(-1) translateX(0) scale(1.04); filter: brightness(1.35); }
+  68% { transform: scaleX(-1) translateX(0) scale(1.02); filter: brightness(1.12); }
 }
 
 @keyframes floatText {
