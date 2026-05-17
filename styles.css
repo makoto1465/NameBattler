@@ -598,12 +598,13 @@ select:focus {
   bottom: 0;
   width: 150px;
   height: 160px;
+  display: none;
   transform: translateX(-50%);
   background-image: var(--job-sheet);
   background-repeat: no-repeat;
   background-size: 600% 800%;
   background-position: 0% 0%;
-  image-rendering: auto;
+  image-rendering: pixelated;
 }
 
 .sprite.job-sprite.loaded .job-sheet {
@@ -732,6 +733,10 @@ select:focus {
 
 .sprite.job-sprite.attack .job-sheet {
   background-position: 60% 28.5714%;
+}
+
+.sprite.job-sprite.cast .job-sheet {
+  background-position: 40% 42.8571%;
 }
 
 .sprite.job-sprite.hit .job-sheet {

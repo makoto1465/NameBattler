@@ -1238,6 +1238,7 @@ function performAction(actor, target, command, done) {
     }
     if (result.critical) screenShake();
     if (ability.kind === "technique") flashSprite(actor, "attack");
+    if (ability.kind === "magic") flashSprite(actor, "cast");
     showEffect(target === state.battle.player ? "player" : "enemy", ability.kind === "magic" ? "spell" : "slash");
     flashSprite(target, "hit");
     afterBattleDelay(() => finishAction(done), 1320);
