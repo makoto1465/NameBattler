@@ -443,7 +443,7 @@ select:focus {
 
 .fighters {
   position: absolute;
-  inset: 70px 20px 58px;
+  inset: 70px 20px 96px;
   display: grid;
   grid-template-columns: 1fr 1fr;
   align-items: end;
@@ -707,15 +707,7 @@ select:focus {
 }
 
 .sprite.cast {
-  animation: castPose 760ms ease both;
-}
-
-.sprite.job-sprite.attack .job-sheet {
-  background-image: var(--job-attack);
-}
-
-.sprite.job-sprite.cast .job-sheet {
-  background-image: var(--job-cast);
+  animation: castPulse 760ms ease both;
 }
 
 .sprite.job-sprite.hit .job-sheet {
@@ -731,7 +723,7 @@ select:focus {
 }
 
 .enemy .sprite.cast {
-  animation: enemyCastPose 760ms ease both;
+  animation: enemyCastPulse 760ms ease both;
 }
 
 .effect-layer {
@@ -1376,13 +1368,13 @@ select:focus {
   62% { transform: scaleX(-1) translateX(18px) scale(1.02); }
 }
 
-@keyframes castPose {
+@keyframes castPulse {
   0%, 100% { transform: translateX(0) scale(1); filter: brightness(1); }
   36% { transform: translateX(0) scale(1.04); filter: brightness(1.35); }
   68% { transform: translateX(0) scale(1.02); filter: brightness(1.12); }
 }
 
-@keyframes enemyCastPose {
+@keyframes enemyCastPulse {
   0%, 100% { transform: scaleX(-1) translateX(0) scale(1); filter: brightness(1); }
   36% { transform: scaleX(-1) translateX(0) scale(1.04); filter: brightness(1.35); }
   68% { transform: scaleX(-1) translateX(0) scale(1.02); filter: brightness(1.12); }
@@ -1508,7 +1500,7 @@ select:focus {
   }
 
   .fighters {
-    inset: 128px 10px 54px;
+    inset: 128px 10px 86px;
     gap: 8px;
   }
 

@@ -930,8 +930,6 @@ function fighterMarkup(character, side) {
   const tpRate = Math.max(0, character.currentTp / character.stats.tp) * 100;
   const spriteId = JOB_SPRITE_IDS[character.job.name] || JOB_SPRITE_IDS["戦士"];
   const spriteIdle = `assets/sprites/jobs/frames/${spriteId}-idle.png`;
-  const spriteAttack = `assets/sprites/jobs/frames/${spriteId}-attack.png`;
-  const spriteCast = `assets/sprites/jobs/frames/${spriteId}-cast.png`;
   return `
     <div class="side ${side}">
       <div class="nameplate">
@@ -947,7 +945,7 @@ function fighterMarkup(character, side) {
       </div>
       <div class="sprite-wrap">
         <div class="shadow"></div>
-        <div class="sprite job-sprite" data-sprite="${side}" style="--job-idle:url('${spriteIdle}');--job-attack:url('${spriteAttack}');--job-cast:url('${spriteCast}')">
+        <div class="sprite job-sprite" data-sprite="${side}" style="--job-idle:url('${spriteIdle}')">
           <div class="job-sheet"></div>
         </div>
       </div>
