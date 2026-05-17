@@ -443,7 +443,7 @@ select:focus {
 
 .fighters {
   position: absolute;
-  inset: 70px 20px 24px;
+  inset: 70px 20px 58px;
   display: grid;
   grid-template-columns: 1fr 1fr;
   align-items: end;
@@ -583,45 +583,19 @@ select:focus {
   height: 170px;
 }
 
-.sprite.job-sprite .sprite-loader {
-  position: absolute;
-  inset: 0;
-  width: 1px;
-  height: 1px;
-  opacity: 0;
-  pointer-events: none;
-}
-
 .sprite.job-sprite .job-sheet {
   position: absolute;
   left: 50%;
   bottom: 0;
   width: 170px;
   height: 170px;
-  display: none;
+  display: block;
   transform: translateX(-50%);
   background-image: var(--job-idle);
   background-repeat: no-repeat;
   background-size: contain;
   background-position: center bottom;
   image-rendering: pixelated;
-}
-
-.sprite.job-sprite.loaded .job-sheet {
-  display: block;
-}
-
-.sprite.job-sprite.loaded .head,
-.sprite.job-sprite.loaded .body,
-.sprite.job-sprite.loaded .arm,
-.sprite.job-sprite.loaded .leg,
-.sprite.job-sprite.loaded .weapon,
-.sprite.job-sprite.loaded .aura {
-  display: none;
-}
-
-.sprite.job-sprite.missing .job-sheet {
-  display: none;
 }
 
 .enemy .sprite {
@@ -733,11 +707,11 @@ select:focus {
 }
 
 .sprite.job-sprite.attack .job-sheet {
-  background-image: var(--job-attack);
+  background-image: var(--job-idle);
 }
 
 .sprite.job-sprite.cast .job-sheet {
-  background-image: var(--job-cast);
+  background-image: var(--job-idle);
 }
 
 .sprite.job-sprite.hit .job-sheet {
@@ -1514,7 +1488,7 @@ select:focus {
   }
 
   .fighters {
-    inset: 128px 10px 24px;
+    inset: 128px 10px 54px;
     gap: 8px;
   }
 
