@@ -578,6 +578,50 @@ select:focus {
   transform-origin: 50% 100%;
 }
 
+.sprite.job-sprite {
+  width: 150px;
+  height: 160px;
+}
+
+.sprite.job-sprite .sprite-loader {
+  position: absolute;
+  inset: 0;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.sprite.job-sprite .job-sheet {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 150px;
+  height: 160px;
+  transform: translateX(-50%);
+  background-image: var(--job-sheet);
+  background-repeat: no-repeat;
+  background-size: 600% 800%;
+  background-position: 0% 0%;
+  image-rendering: auto;
+}
+
+.sprite.job-sprite.loaded .job-sheet {
+  display: block;
+}
+
+.sprite.job-sprite.loaded .head,
+.sprite.job-sprite.loaded .body,
+.sprite.job-sprite.loaded .arm,
+.sprite.job-sprite.loaded .leg,
+.sprite.job-sprite.loaded .weapon {
+  display: none;
+}
+
+.sprite.job-sprite.missing .job-sheet {
+  display: none;
+}
+
 .enemy .sprite {
   transform: scaleX(-1);
 }
@@ -684,6 +728,14 @@ select:focus {
 
 .sprite.attack {
   animation: attackRight 620ms ease both;
+}
+
+.sprite.job-sprite.attack .job-sheet {
+  background-position: 60% 28.5714%;
+}
+
+.sprite.job-sprite.hit .job-sheet {
+  background-position: 0% 85.7143%;
 }
 
 .enemy .sprite.hit {
@@ -1472,6 +1524,16 @@ select:focus {
   .sprite {
     width: 78px;
     height: 150px;
+  }
+
+  .sprite.job-sprite {
+    width: 128px;
+    height: 140px;
+  }
+
+  .sprite.job-sprite .job-sheet {
+    width: 128px;
+    height: 140px;
   }
 
   .head {
