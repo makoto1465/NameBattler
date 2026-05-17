@@ -862,8 +862,8 @@ function renderBattle() {
           ${fighterMarkup(battle.enemy, "enemy")}
         </div>
         <div class="effect-layer"></div>
-        <div class="stage-message">${latestLog}</div>
       </section>
+      <div class="stage-message stage-message-bar">${latestLog}</div>
       <section class="hud">
         <div class="panel commands">
           <div class="toggle-row">

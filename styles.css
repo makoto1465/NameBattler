@@ -443,7 +443,7 @@ select:focus {
 
 .fighters {
   position: absolute;
-  inset: 70px 20px 86px;
+  inset: 70px 20px 24px;
   display: grid;
   grid-template-columns: 1fr 1fr;
   align-items: end;
@@ -452,14 +452,17 @@ select:focus {
 }
 
 .stage-message {
-  position: absolute;
-  left: 14px;
-  right: 14px;
-  bottom: 14px;
-  z-index: 4;
   min-height: 56px;
   display: grid;
   align-items: center;
+}
+
+.stage-message-bar {
+  margin-top: -2px;
+  border: 1px solid rgba(248, 214, 126, 0.22);
+  border-radius: 8px;
+  background: linear-gradient(180deg, rgba(11, 15, 28, 0.96), rgba(8, 10, 18, 0.98));
+  padding: 10px 12px;
 }
 
 .stage-message p {
@@ -1453,8 +1456,12 @@ select:focus {
   }
 
   .fighters {
-    inset: 128px 10px 98px;
+    inset: 128px 10px 24px;
     gap: 8px;
+  }
+
+  .stage-message-bar {
+    padding: 8px 10px;
   }
 
   .sprite-wrap {
