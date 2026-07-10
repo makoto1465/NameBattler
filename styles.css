@@ -1761,6 +1761,9 @@ select:focus {
 .shell {
   width: min(1240px, calc(100vw - 40px));
   padding: 22px 0 34px;
+}
+
+.title-screen {
   animation: shellReveal 420ms ease both;
 }
 
