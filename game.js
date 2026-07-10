@@ -447,6 +447,7 @@ function awardExp(player, enemy, stageIndex) {
 }
 
 function render() {
+  document.body.dataset.screen = state.screen;
   if (state.screen === "title") {
     renderTitle();
     return;
